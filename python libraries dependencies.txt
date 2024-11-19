@@ -1,0 +1,4 @@
+
+
+Pandas (For Excel stuff):
+pip install pandas openpyxl
