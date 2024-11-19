@@ -1,4 +1,12 @@
-
-
+-----------------------------------------------------
 Pandas (For Excel stuff):
 pip install pandas openpyxl
+
+-----------------------------------------------------
+optionals:
+
+Nuitka (For building executables):
+pip install nuitka
+command: "nuitka --standalone <py_filename.py>"
+
+-----------------------------------------------------
