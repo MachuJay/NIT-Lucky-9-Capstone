@@ -5,7 +5,12 @@ sayonara = input("Enter any key to exit...")
 ''' --------------------------------------------------------------------------------------------------- '''
 # ---------------------------------------------------------------------------------------------------
 '''Nuitka Building
-nuitka --standalone --onefile --output-dir=build --windows-icon-from-ico=.\resources\puregro.ico --include-data-dir=.\resources=resources --enable-plugin=tk-inter main.py
+nuitka --standalone --output-dir=build --include-data-dir=resources=resources --windows-icon-from-ico=resources/puregro.ico --enable-plugin=tk-inter main.py
+
+--onefile
+--standalone 
+--include-data-file=resources/puregro.ico=resources/puregro.ico
+--include-data-files=resources/*.png=resources
 
 --standalone: Creates a standalone application, including all necessary dependencies.
 --onefile: Packages everything into a single executable file.
