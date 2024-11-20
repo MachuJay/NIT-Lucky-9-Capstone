@@ -4,8 +4,6 @@
 Nuitka (For building executables):
 pip install nuitka
 
-Pillow (For Images management):
-pip install pillow
 -----------------------------------------------------
 -----------------------------------------------------
 optionals:
