@@ -4,6 +4,8 @@
 Nuitka (For building executables):
 pip install nuitka
 
+Python MySQL Connector (database):
+pip install mysql-connector-python
 -----------------------------------------------------
 -----------------------------------------------------
 optionals:

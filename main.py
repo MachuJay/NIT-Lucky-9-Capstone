@@ -1,6 +1,8 @@
 # Import packages
 from tkinter import *
 import os, sys
+from mysql.connector import (connection)
+from mysql.connector import Error
 
 # Define Classes
 class App(Tk):
@@ -25,21 +27,49 @@ class App(Tk):
         self.y_coordinate = int((self.screen_height/2) - (self.window_height/2))
         self.geometry("{}x{}+{}+{}".format(self.window_width, self.window_height, self.x_coordinate, self.y_coordinate))
 
-        # Variables
-        self.togglestatus = True
-
         # Brand Intro Banner
         self.image_banner = PhotoImage(file=self.path_banner)
         self.my_labelimage = Label(self, image=self.image_banner)
         self.my_labelimage.pack(pady=20)
-        
-        # Label Box
-        self.my_label = Label(self, text="Hello Lucky 9!", font=("Helvetica", 42))
-        self.my_label.pack(pady=20)
 
-        # Toggle Button
-        self.my_button = Button(self, text = "Toggle", command=self.change)
-        self.my_button.pack(pady=20)
+        self.connection = NONE
+        self.cursor = NONE
+
+        # Connection Test
+        try:
+            self.connection = connection.MySQLConnection(
+                host='127.0.0.1',
+                user='root',
+                password='',
+                database='dali_9')
+
+            if self.connection.is_connected():
+                print("Connected to the database")
+                # Step 2: Create a cursor object
+                self.cursor = self.connection.cursor()
+
+                # Step 3: Execute the SQL query to fetch all rows
+                query = "SELECT * FROM inventory;"
+                self.cursor.execute(query)
+
+                # Step 4: Fetch all rows from the query result
+                rows = self.cursor.fetchall()
+
+                # Step 5: Display the results
+                print("Contents of the table 'INVENTORY':")
+                for row in rows:
+                    print(row)
+                
+                x = input("\n\nProceed?")
+
+        except Error as e:
+            print("Error while connecting to MySQL:", e)
+        finally:
+            # Step 6: Close the connection
+            if self.connection.is_connected():
+                self.cursor.close()
+                self.connection.close()
+                print("MySQL connection closed")
 
     # Get the absolute path to a resource file (Works in dev and built modes)
     def resource_path(self, relative_path):
@@ -50,15 +80,6 @@ class App(Tk):
             # Running in a normal Python environment
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
-
-    # Toggle Button Action
-    def change(self):
-        if self.togglestatus == True:
-            self.my_label.config(text="GUI App Initialized.")
-            self.togglestatus = False
-        else:
-            self.my_label.config(text="Hello Lucky 9!")
-            self.togglestatus = True
 
 # Define and Instantiate Shopping Cart App 
 app = App()
