@@ -10,8 +10,8 @@ class App(Tk):
         super().__init__()
 
         #Initialize resources items paths
-        self.path_icon = self.resource_path("resources/puregro.ico")
-        self.path_banner = self.resource_path("resources/banner_puregro.png")
+        self.path_icon = self.resource_path("resources/logo_icon.ico")
+        self.path_banner = self.resource_path("resources/logo_brand.png")
 
         # Initialize window properties
         self.title("Puregro Virtual Shopping Cart")
@@ -32,9 +32,7 @@ class App(Tk):
         self.my_labelimage = Label(self, image=self.image_banner)
         self.my_labelimage.pack(pady=20)
 
-        self.connection = NONE
-        self.cursor = NONE
-
+        '''
         # Connection Test
         try:
             self.connection = connection.MySQLConnection(
@@ -59,9 +57,6 @@ class App(Tk):
                 print("Contents of the table 'INVENTORY':")
                 for row in rows:
                     print(row)
-                
-                x = input("\n\nProceed?")
-
         except Error as e:
             print("Error while connecting to MySQL:", e)
         finally:
@@ -70,6 +65,7 @@ class App(Tk):
                 self.cursor.close()
                 self.connection.close()
                 print("MySQL connection closed")
+        '''
 
     # Get the absolute path to a resource file (Works in dev and built modes)
     def resource_path(self, relative_path):

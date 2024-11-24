@@ -4,15 +4,14 @@
 Nuitka (For building executables):
 pip install nuitka
 
-Python MySQL Connector (database):
+Python MySQL Connector (For database connections):
 pip install mysql-connector-python
 -----------------------------------------------------
 -----------------------------------------------------
 optionals:
 
-Pandas (For Excel stuff):
+Pandas (For uploading Excel file data into database):
 pip install pandas openpyxl
-
 -----------------------------------------------------
 -----------------------------------------------------
 -----------------------------------------------------
