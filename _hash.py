@@ -9,7 +9,7 @@ def hash_password_md5(password: str) -> str:
 # Example usage
 if __name__ == "__main__":
     # Input password
-    plain_password = "22"
+    plain_password = "customer"
 
     # Hash the password
     hashed_password = hash_password_md5(plain_password)

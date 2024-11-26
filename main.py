@@ -7,7 +7,7 @@ import os, sys
 from mysql.connector import (connection)
 from mysql.connector import Error
 
-#-----------------------------------------------------------------------------------------------------------------
+#--- MAIN WINDOW -------------------------------------------------------------------------------------------------
 # Define Classes
 class ShoppingCartSystem(Tk):
     def __init__(self):
@@ -45,7 +45,7 @@ class ShoppingCartSystem(Tk):
         self.frame_sub = frame_login(self)
         self.frame_sub.pack()
 
-#-----------------------------------------------------------------------------------------------------------------
+#--- FUNCTIONS ---------------------------------------------------------------------------------------------------
     # Get the absolute path to a resource file (Works in dev and built modes)
     def resource_path(self, relative_path):
         if hasattr(sys, "_MEIPASS"):
@@ -66,15 +66,34 @@ class ShoppingCartSystem(Tk):
         # Load user home frame
         if type == 0:
             self.user_type = "administrator"
-            self.frame_sub = frame_cust_home(self)
+            self.frame_sub = frame_admin_home(self)
         elif type == 1:
             self.user_type = "customer"
-            self.frame_sub = frame_admin_home(self)
+            self.frame_sub = frame_cust_home(self)
         # Add frame to window
-        self.frame_sub.pack()
+        self.frame_sub.pack(fill=BOTH, expand=1)
+
+    def db_connect(self):
+        try:
+            self.connection = connection.MySQLConnection(
+                host="127.0.0.1",
+                user="root",
+                password="",
+                database="dali_9"
+            )
+            if self.connection.is_connected():
+                print("Succesfully connected to database:", self.connection.database)
+                self.cursor = self.connection.cursor
+        except Error as e:
+            print("Error while connecting to MySQL:", e)
+
+    def db_disconnect(self):
+        if self.connection.is_connected():
+            print("Succesfully disconnected from database:", self.connection.database)
+            self.connection.close()
         
 #-----------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------------
+#--- HEADER FRAMES -----------------------------------------------------------------------------------------------
 # Dali 9 Brand Header Frame
 class frame_mainheader(Frame):
     def __init__(self, parent):
@@ -103,6 +122,7 @@ class frame_header(Frame):
         self.label_brand.place(x=50,y=0)
         self.label_brand.lift()
 
+#--- USER ACCESS FRAMES --------------------------------------------
 # Login Frame
 class frame_login(Frame):
     def __init__(self, parent):
@@ -114,17 +134,57 @@ class frame_login(Frame):
         self.temp_mana = Button(self, text = "Administrator", command=lambda: self.parent.user_authorization(0))
         self.temp_mana.pack(pady=20)
 
-#-------------------------------------------------------------------
+# Registration Frame
+#placeholder
+
+#--- CUSTOMER USER FRAMES ------------------------------------------
 # Customer Frame: Home
+def create_image_grid(canvas_frame, image_paths):
+    """Loads images and displays them in a grid on the canvas_frame."""
+    for i, img_path in enumerate(image_paths):
+        # Open image and resize it (if necessary)
+        image = Image.open(img_path).resize((100, 100))
+        photo = PhotoImage(image)
+        
+        label = Label(canvas_frame, image=photo)
+        label.image = photo  # Keep a reference to avoid garbage collection
+        label.grid(row=i // 5, column=i % 5, padx=5, pady=5)
+
 class frame_cust_home(Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        #placeholder
-        self.labeltemp = Label(self, text="placeholder")
-        self.labeltemp.pack()
+        # Initialize Canvas
+        self.canvas = Canvas(self.parent)
+        self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
+        # mousewheel event to scroll the canvas vertically
+        def on_mousewheel(event):
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        # Initialize Scrollbar
+        self.scrollbar = Scrollbar(parent, orient=VERTICAL, command=self.canvas.yview)
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        # Configure Canvas
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.config(scrollregion=self.canvas.bbox("all")))
+        # Bind mouse wheel event
+        self.canvas.bind_all("<MouseWheel>", on_mousewheel)
+        # Initialize internal Frame into an internal Window within the Canvas
+        self.frame = Frame(self.canvas)
+        self.canvas.create_window((0,0), window=self.frame, anchor="nw")
+        # Attach buttons to internal Frame   #-------------------------------------------------------------------ACCESS DATABASE INVENTORY HERE
 
-#-------------------------------------------------------------------
+        self.parent.db_connect()
+        #self.parent.cursor.execute()
+        # set cursor to retrieve database rows
+        self.parent.db_disconnect()
+
+        for item_row in range(50):
+            Button(self.frame, text=f"Item {item_row+1}", command=lambda num=item_row+1: self.test(num)).grid(row=item_row, column=0, pady=10, padx=10)
+
+    def test(self, num):
+        print("Button ", num, " pressed.")
+
+#--- ADMINISTRATOR USER FRAMES -------------------------------------
 # Administrator Frame: Home
 class frame_admin_home(Frame):
     def __init__(self, parent):
@@ -133,9 +193,10 @@ class frame_admin_home(Frame):
         #placeholder
         self.labeltemp = Label(self, text="placeholder")
         self.labeltemp.pack()
-
+        #---trial---
+        
 #-----------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------------
+#--- RUNTIME INITIATE --------------------------------------------------------------------------------------------
 # Define and Instantiate Shopping Cart App 
 ShoppingCartSystem().mainloop()
 

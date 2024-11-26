@@ -5,7 +5,7 @@ sayonara = input("Enter any key to exit...")
 ''' --------------------------------------------------------------------------------------------------- '''
 # ---------------------------------------------------------------------------------------------------
 '''Nuitka Building
-nuitka --standalone --output-dir=build --include-data-dir=resources=resources --windows-icon-from-ico=resources/puregro.ico --enable-plugin=tk-inter main.py
+nuitka --standalone --output-dir=build --include-data-dir=resources=resources --windows-icon-from-ico=resources/logo_icon.ico --enable-plugin=tk-inter --include-package=mysql.connector main.py
 
 --onefile
 --standalone 
