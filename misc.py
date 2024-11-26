@@ -86,3 +86,13 @@ class App(Tk):
             self.status = True
 '''
 # ---------------------------------------------------------------------------------------------------
+'''
+To store PNG files (or any binary data like images) in MySQL, you should use a BLOB (Binary Large Object) data type.
+The BLOB type is designed to store large amounts of binary data, such as images, audio, or any other files.
+There are several types of BLOB in MySQL, and the most common ones are:
+TINYBLOB: Can store up to 255 bytes.
+BLOB: Can store up to 65,535 bytes (64 KB).
+MEDIUMBLOB: Can store up to 16,777,215 bytes (16 MB).
+LONGBLOB: Can store up to 4,294,967,295 bytes (4 GB).
+'''
+# ---------------------------------------------------------------------------------------------------

@@ -73,6 +73,7 @@ class ShoppingCartSystem(Tk):
         # Add frame to window
         self.frame_sub.pack(fill=BOTH, expand=1)
 
+    # Connect to Database
     def db_connect(self):
         try:
             self.connection = connection.MySQLConnection(
@@ -87,6 +88,7 @@ class ShoppingCartSystem(Tk):
         except Error as e:
             print("Error while connecting to MySQL:", e)
 
+    # DIsconnect from Database
     def db_disconnect(self):
         if self.connection.is_connected():
             print("Succesfully disconnected from database:", self.connection.database)
@@ -139,17 +141,6 @@ class frame_login(Frame):
 
 #--- CUSTOMER USER FRAMES ------------------------------------------
 # Customer Frame: Home
-def create_image_grid(canvas_frame, image_paths):
-    """Loads images and displays them in a grid on the canvas_frame."""
-    for i, img_path in enumerate(image_paths):
-        # Open image and resize it (if necessary)
-        image = Image.open(img_path).resize((100, 100))
-        photo = PhotoImage(image)
-        
-        label = Label(canvas_frame, image=photo)
-        label.image = photo  # Keep a reference to avoid garbage collection
-        label.grid(row=i // 5, column=i % 5, padx=5, pady=5)
-
 class frame_cust_home(Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -171,18 +162,33 @@ class frame_cust_home(Frame):
         # Initialize internal Frame into an internal Window within the Canvas
         self.frame = Frame(self.canvas)
         self.canvas.create_window((0,0), window=self.frame, anchor="nw")
-        # Attach buttons to internal Frame   #-------------------------------------------------------------------ACCESS DATABASE INVENTORY HERE
-
+        # Access Database: Retrieve "Inventory" table rows data
         self.parent.db_connect()
-        #self.parent.cursor.execute()
-        # set cursor to retrieve database rows
+        self.cursor = self.parent.connection.cursor()
+        self.cursor.execute("SELECT * FROM inventory")
+        self.rows = self.cursor.fetchall()
+        print(f"Succsesfully retrieved {len(self.rows)} rows.")
         self.parent.db_disconnect()
+        # Display retrieved "inventory" table rows
+        Label(self.frame, text="Image").grid(row=0, column=0, pady=10, padx=10)
+        Label(self.frame, text="Name").grid(row=0, column=1, pady=10, padx=10)
+        Label(self.frame, text="Quantity").grid(row=0, column=2, pady=10, padx=10)
+        Label(self.frame, text="Price").grid(row=0, column=3, pady=10, padx=10)
+        Label(self.frame, text="Category").grid(row=0, column=4, pady=10, padx=10)
+        Label(self.frame, text="").grid(row=0, column=5, pady=10, padx=10)
+        self.rowcounter = 0
+        self.test_image = PhotoImage(file="resources/image1.png") #PLACEHOLDER IMAGE--------------------------------------+++++++++++++++++++++++++++++++
+        for self.row in self.rows:
+            self.rowcounter += 1
+            Label(self.frame, image=self.test_image).grid(row=self.rowcounter, column=0) #PLACEHOLDER IMAGE-------+++++++++++++++++++++++++++++++
+            Label(self.frame, text=self.row[1]).grid(row=self.rowcounter, column=1, pady=10, padx=10)
+            Label(self.frame, text=self.row[2]).grid(row=self.rowcounter, column=2, pady=10, padx=10)
+            Label(self.frame, text=f"Php {self.row[3]}", justify="right").grid(row=self.rowcounter, column=3, pady=10, padx=10)
+            Label(self.frame, text=self.row[4],).grid(row=self.rowcounter, column=4, pady=10, padx=10)
+            Button(self.frame, text="Order", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=10, padx=10)
 
-        for item_row in range(50):
-            Button(self.frame, text=f"Item {item_row+1}", command=lambda num=item_row+1: self.test(num)).grid(row=item_row, column=0, pady=10, padx=10)
-
-    def test(self, num):
-        print("Button ", num, " pressed.")
+    def test(self, item):
+        print(item, "Added to cart.")
 
 #--- ADMINISTRATOR USER FRAMES -------------------------------------
 # Administrator Frame: Home
