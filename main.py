@@ -2,14 +2,18 @@
 #-----------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------
 # Import packages
-from tkinter import *
 import os, sys
-from mysql.connector import (connection)
+from tkinter import *
 from mysql.connector import Error
+from mysql.connector import (connection)
 
 #--- MAIN WINDOW -------------------------------------------------------------------------------------------------
 # Define Classes
 class ShoppingCartSystem(Tk):
+    # Initialize variables
+    user_type = ""
+    user_id = ""
+
     def __init__(self):
         super().__init__()
 
@@ -25,10 +29,8 @@ class ShoppingCartSystem(Tk):
         self.title("Dali 9 Shopping Cart System")
         self.iconbitmap(self.path_icon)
         self.resizable(False, False)
-
-        # Initialize variables
-        self.user_type = None
-        self.user_id = None
+        self.attributes('-topmost', True)
+        self.attributes('-topmost', False)
 
         # Center program window on screen
         self.window_height = 720
@@ -60,19 +62,22 @@ class ShoppingCartSystem(Tk):
     
     # Set user type variable and load respective home interface 
     def user_authorization(self, type):
-        # remove Login Frame then replace Header Frame 
+        # Remove Login Frame then replace Header Frame 
         self.frame_sub.destroy()
         self.frame_main.destroy()
+        # Set user values
+        if type == 0:
+            self.user_id = 0 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++ placeholder (pre-login system) 
+            self.user_type = "administrator"
+        elif type == 1:
+            self.user_id = 1 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++ placeholder (pre-login system) 
+            self.user_type = "customer"
         self.frame_main = frame_header(self)
         self.frame_main.pack()
         # Load user home frame
         if type == 0:
-            self.user_id = 0 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++ placeholder (pre-login system) 
-            self.user_type = "administrator"
             self.frame_sub = frame_admin_home(self)
         elif type == 1:
-            self.user_id = 1 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++ placeholder (pre-login system) 
-            self.user_type = "customer"
             self.frame_sub = frame_cust_home(self)
         # Add frame to window
         self.frame_sub.pack(fill=BOTH, expand=1)
@@ -97,6 +102,11 @@ class ShoppingCartSystem(Tk):
         if self.connection.is_connected():
             print("Succesfully disconnected from database:", self.connection.database)
             self.connection.close()
+
+    # Logout User Account
+    def logout(self):
+        python = sys.executable
+        os.execl(python, python, * sys.argv)
         
 #-----------------------------------------------------------------------------------------------------------------
 #--- HEADER FRAMES -----------------------------------------------------------------------------------------------
@@ -106,10 +116,10 @@ class frame_mainheader(Frame):
         super().__init__(parent)
         self.parent = parent
         # Brand Intro Banner
-        self.image_banner = PhotoImage(file=self.parent.path_mainbanner)
+        self.image_banner = PhotoImage(file=parent.path_mainbanner)
         self.label_banner = Label(self, image=self.image_banner)
         self.label_banner.pack()
-        self.image_brand = PhotoImage(file=self.parent.path_mainbrand)
+        self.image_brand = PhotoImage(file=parent.path_mainbrand)
         self.label_brand = Label(self, image=self.image_brand)
         self.label_brand.place(x=412,y=0)
         self.label_brand.lift()
@@ -120,29 +130,51 @@ class frame_header(Frame):
         super().__init__(parent)
         self.parent = parent
         # Brand Intro Banner
-        self.image_banner = PhotoImage(file=self.parent.path_banner)
+        self.image_banner = PhotoImage(file=parent.path_banner)
         self.label_banner = Label(self, image=self.image_banner)
         self.label_banner.pack()
-        self.image_brand = PhotoImage(file=self.parent.path_brand)
+        self.image_brand = PhotoImage(file=parent.path_brand)
         self.label_brand = Label(self, image=self.image_brand)
-        self.label_brand.place(x=50,y=0)
+        self.label_brand.place(x=35,y=0)
         self.label_brand.lift()
-        self.button_logout = Button(self, text = "LOG OUT", fg="white", bg="red", command=lambda: self.logout())
+        # Logout Button
+        self.button_logout = Button(self, text = "LOG OUT", fg="white", bg="red", command=lambda: parent.logout())
         self.button_logout.place(x=950,y=2)
+        # Welcome Text
+        if parent.user_type == "customer":
+            self.welcometext = "\"Dali-an niyo umorder...\" "
+        elif parent.user_type == "administrator":
+            self.welcometext = "\"Dali-an mo mag-manage!\" "
+        self.label_welcometext = Label(self, text=self.welcometext, fg="white", bg="#A21F6A", font=("Tahoma", 32, "italic"))
+        self.label_welcometext.place(x=230,y=60)
 
+    # Initiate Grocery Cart Feature
     def initiatecart(self):
         self.image_cart = PhotoImage(file=self.parent.path_cart)
-        self.button_cart = Button(self, image=self.image_cart, command=lambda: self.cartshit()) #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.button_cart = Button(self, image=self.image_cart, command=lambda: self.cart_view()) #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.button_cart.place(x=800,y=33)
         self.button_cart.lift()
         self.label_cartcount = Label(self, text="(99 items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
         self.label_cartcount.place(x=850,y=112)
 
-    def cartshit(self):
-        print("UWOOOOOO SEGGGGS")
-
-    def logout(self):
-        print("Logout.")
+    # Grocery Cart Popup Window
+    def cart_view(self):
+        # Intiialize Cart Summary popup window
+        self.cart = Toplevel(self.parent)
+        self.cart.grab_set()
+        # Set Cart Summary popup window's properties and center position to screen
+        self.cart.title("Cart Summary")
+        self.cart.iconbitmap(self.parent.path_icon)
+        self.cart.resizable(False, False)
+        self.window_height = 250
+        self.window_width = 750
+        self.screen_width = self.winfo_screenwidth()
+        self.screen_height = self.winfo_screenheight()
+        self.x_coordinate = int((self.screen_width/2) - (self.window_width/2))
+        self.y_coordinate = int((self.screen_height/2) - (self.window_height/2))
+        self.cart.geometry("{}x{}+{}+{}".format(self.window_width, self.window_height, self.x_coordinate, self.y_coordinate))
+        # Contents
+        Label(self.cart, text= "Hello World!", font=('Mistral 18 bold')).place(x=150,y=80)
 
 #--- USER ACCESS FRAMES --------------------------------------------
 # Login Frame
@@ -151,14 +183,10 @@ class frame_login(Frame):
         super().__init__(parent)
         self.parent = parent
         # User Login/Registration
-        self.temp_cust = Button(self, text = "Customer", command=lambda: self.parent.user_authorization(1))
+        self.temp_cust = Button(self, text = "Customer", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(1))
         self.temp_cust.pack(pady=60)
-        self.temp_mana = Button(self, text = "Administrator", command=lambda: self.parent.user_authorization(0))
+        self.temp_mana = Button(self, text = "Administrator", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(0))
         self.temp_mana.pack(pady=20)
-
-    def login(self):
-        # placeholder
-        print("")
 
 # Registration Frame
 #placeholder
@@ -170,7 +198,7 @@ class frame_cust_home(Frame):
         super().__init__(parent)
         self.parent = parent
         # Initialize Canvas
-        self.canvas = Canvas(self.parent)
+        self.canvas = Canvas(parent)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
         # mousewheel event to scroll the canvas vertically
         def on_mousewheel(event):
@@ -187,19 +215,19 @@ class frame_cust_home(Frame):
         self.frame = Frame(self.canvas)
         self.canvas.create_window((0,0), window=self.frame, anchor="nw")
         # Access Database: Retrieve "Inventory" table rows data
-        self.parent.db_connect()
-        self.cursor = self.parent.connection.cursor()
+        parent.db_connect()
+        self.cursor = parent.connection.cursor()
         self.cursor.execute("SELECT * FROM inventory")
         self.rows = self.cursor.fetchall()
         print(f"Succsesfully retrieved {len(self.rows)} rows.")
         # Initiate Order's Cart+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #
-        self.parent.frame_main.initiatecart()
+        parent.frame_main.initiatecart()
         #
         #self.cursor = self.parent.connection.cursor()
         #self.cursor.execute("SELECT * FROM inventory")
         #self.parent.frame_main = frame_mainheader(self.parent)
-        self.parent.db_disconnect()
+        parent.db_disconnect()
         # Initialize grocery inventory rows header titles
         Label(self.frame, text="Image", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, pady=10, padx=0)
         Label(self.frame, text="Name", font=("Segoe UI", 10, "bold")).grid(row=0, column=1, pady=10, padx=0)
@@ -209,15 +237,19 @@ class frame_cust_home(Frame):
         Label(self.frame, text="").grid(row=0, column=5, pady=10, padx=10)
         # Display retrieved "inventory" table rows
         self.rowcounter = 0
-        self.test_image = PhotoImage(file="resources/image1.png") #PLACEHOLDER IMAGE--------------------------------------+++++++++++++++++++++++++++++++
+        self.item_image = PhotoImage(file=parent.resource_path("resources/placeholder.png")) #PLACEHOLDER IMAGE--------------------------------------+++++++++++++++++++++++++++++++
         for self.row in self.rows:
             self.rowcounter += 1
-            Label(self.frame, image=self.test_image).grid(row=self.rowcounter, column=0, padx=5) #PLACEHOLDER IMAGE-------+++++++++++++++++++++++++++++++
+            if self.row[5] == "":
+                x=1 # default image
+            else:
+                self.item_image = PhotoImage(file=parent.resource_path(self.row[5]))
+            Label(self.frame, image=self.item_image).grid(row=self.rowcounter, column=0, padx=5) #PLACEHOLDER IMAGE-------+++++++++++++++++++++++++++++++
             Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
             Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=2, pady=0, padx=0)
-            Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, ""), justify="right").grid(row=self.rowcounter, column=3, pady=0, padx=0)
+            Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=3, pady=0, padx=0)
             Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
-            Button(self.frame, text="Order", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
+            Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="#A21F6A", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
 
     def test(self, item):
         print(item, "Added to cart.")
