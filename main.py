@@ -19,6 +19,7 @@ class ShoppingCartSystem(Tk):
         self.path_mainbanner = self.resource_path("resources/logo_mainbanner.png")
         self.path_brand = self.resource_path("resources/logo_icon.png")
         self.path_banner = self.resource_path("resources/logo_banner.png")
+        self.path_cart = self.resource_path("resources/logo_cart.png")
 
         # Initialize window properties
         self.title("Dali 9 Shopping Cart System")
@@ -27,6 +28,7 @@ class ShoppingCartSystem(Tk):
 
         # Initialize variables
         self.user_type = None
+        self.user_id = None
 
         # Center program window on screen
         self.window_height = 720
@@ -65,9 +67,11 @@ class ShoppingCartSystem(Tk):
         self.frame_main.pack()
         # Load user home frame
         if type == 0:
+            self.user_id = 0 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++ placeholder (pre-login system) 
             self.user_type = "administrator"
             self.frame_sub = frame_admin_home(self)
         elif type == 1:
+            self.user_id = 1 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++ placeholder (pre-login system) 
             self.user_type = "customer"
             self.frame_sub = frame_cust_home(self)
         # Add frame to window
@@ -88,7 +92,7 @@ class ShoppingCartSystem(Tk):
         except Error as e:
             print("Error while connecting to MySQL:", e)
 
-    # DIsconnect from Database
+    # Disconnect from Database
     def db_disconnect(self):
         if self.connection.is_connected():
             print("Succesfully disconnected from database:", self.connection.database)
@@ -123,6 +127,22 @@ class frame_header(Frame):
         self.label_brand = Label(self, image=self.image_brand)
         self.label_brand.place(x=50,y=0)
         self.label_brand.lift()
+        self.button_logout = Button(self, text = "LOG OUT", fg="white", bg="red", command=lambda: self.logout())
+        self.button_logout.place(x=950,y=2)
+
+    def initiatecart(self):
+        self.image_cart = PhotoImage(file=self.parent.path_cart)
+        self.button_cart = Button(self, image=self.image_cart, command=lambda: self.cartshit()) #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.button_cart.place(x=800,y=33)
+        self.button_cart.lift()
+        self.label_cartcount = Label(self, text="(99 items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
+        self.label_cartcount.place(x=850,y=112)
+
+    def cartshit(self):
+        print("UWOOOOOO SEGGGGS")
+
+    def logout(self):
+        print("Logout.")
 
 #--- USER ACCESS FRAMES --------------------------------------------
 # Login Frame
@@ -130,11 +150,15 @@ class frame_login(Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        # Buttons
+        # User Login/Registration
         self.temp_cust = Button(self, text = "Customer", command=lambda: self.parent.user_authorization(1))
         self.temp_cust.pack(pady=60)
         self.temp_mana = Button(self, text = "Administrator", command=lambda: self.parent.user_authorization(0))
         self.temp_mana.pack(pady=20)
+
+    def login(self):
+        # placeholder
+        print("")
 
 # Registration Frame
 #placeholder
@@ -168,24 +192,32 @@ class frame_cust_home(Frame):
         self.cursor.execute("SELECT * FROM inventory")
         self.rows = self.cursor.fetchall()
         print(f"Succsesfully retrieved {len(self.rows)} rows.")
+        # Initiate Order's Cart+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        #
+        self.parent.frame_main.initiatecart()
+        #
+        #self.cursor = self.parent.connection.cursor()
+        #self.cursor.execute("SELECT * FROM inventory")
+        #self.parent.frame_main = frame_mainheader(self.parent)
         self.parent.db_disconnect()
-        # Display retrieved "inventory" table rows
-        Label(self.frame, text="Image").grid(row=0, column=0, pady=10, padx=10)
-        Label(self.frame, text="Name").grid(row=0, column=1, pady=10, padx=10)
-        Label(self.frame, text="Quantity").grid(row=0, column=2, pady=10, padx=10)
-        Label(self.frame, text="Price").grid(row=0, column=3, pady=10, padx=10)
-        Label(self.frame, text="Category").grid(row=0, column=4, pady=10, padx=10)
+        # Initialize grocery inventory rows header titles
+        Label(self.frame, text="Image", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, pady=10, padx=0)
+        Label(self.frame, text="Name", font=("Segoe UI", 10, "bold")).grid(row=0, column=1, pady=10, padx=0)
+        Label(self.frame, text="Quantity", font=("Segoe UI", 10, "bold")).grid(row=0, column=2, pady=10, padx=0)
+        Label(self.frame, text="Price", font=("Segoe UI", 10, "bold")).grid(row=0, column=3, pady=10, padx=0)
+        Label(self.frame, text="Category", font=("Segoe UI", 10, "bold")).grid(row=0, column=4, pady=10, padx=0)
         Label(self.frame, text="").grid(row=0, column=5, pady=10, padx=10)
+        # Display retrieved "inventory" table rows
         self.rowcounter = 0
         self.test_image = PhotoImage(file="resources/image1.png") #PLACEHOLDER IMAGE--------------------------------------+++++++++++++++++++++++++++++++
         for self.row in self.rows:
             self.rowcounter += 1
-            Label(self.frame, image=self.test_image).grid(row=self.rowcounter, column=0) #PLACEHOLDER IMAGE-------+++++++++++++++++++++++++++++++
-            Label(self.frame, text=self.row[1]).grid(row=self.rowcounter, column=1, pady=10, padx=10)
-            Label(self.frame, text=self.row[2]).grid(row=self.rowcounter, column=2, pady=10, padx=10)
-            Label(self.frame, text=f"Php {self.row[3]}", justify="right").grid(row=self.rowcounter, column=3, pady=10, padx=10)
-            Label(self.frame, text=self.row[4],).grid(row=self.rowcounter, column=4, pady=10, padx=10)
-            Button(self.frame, text="Order", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=10, padx=10)
+            Label(self.frame, image=self.test_image).grid(row=self.rowcounter, column=0, padx=5) #PLACEHOLDER IMAGE-------+++++++++++++++++++++++++++++++
+            Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
+            Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=2, pady=0, padx=0)
+            Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, ""), justify="right").grid(row=self.rowcounter, column=3, pady=0, padx=0)
+            Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
+            Button(self.frame, text="Order", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
 
     def test(self, item):
         print(item, "Added to cart.")
