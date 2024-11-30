@@ -4,15 +4,22 @@
 # Import packages
 import os, sys
 from tkinter import *
+from datetime import datetime
 from mysql.connector import Error
 from mysql.connector import (connection)
 
 #--- MAIN WINDOW -------------------------------------------------------------------------------------------------
 # Define Classes
 class ShoppingCartSystem(Tk):
-    # Initialize variables
-    user_type = None
+    # Initialize User Variables
     user_id = None
+    user_type = None
+    # Initialize Database Rows
+    rows_items = None
+    rows_orders = None
+    rows_orderitems = None
+    # Initialize User Order Database Row
+    row_order = None
 
     def __init__(self):
         super().__init__()
@@ -150,12 +157,28 @@ class frame_header(Frame):
 
     # Initiate Grocery Cart Feature
     def initiatecart(self):
+        # Initialize Grocery Cart Button Image and Cart Items counter
         self.image_cart = PhotoImage(file=self.parent.path_cart)
-        self.button_cart = Button(self, image=self.image_cart, command=lambda: self.cart_view()) #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.button_cart = Button(self, image=self.image_cart, command=lambda: self.cart_view())
         self.button_cart.place(x=800,y=33)
         self.button_cart.lift()
         self.label_cartcount = Label(self, text="(XX items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
         self.label_cartcount.place(x=850,y=112)
+        # Load Ongoing Order
+        for self.row in self.parent.rows_orders:
+            # Load unfinished Order
+            if (self.row[1] == self.parent.user_id and self.row[4] != True):
+                self.parent.row_order = self.row
+                print("Retrieved current user Order.")
+        # Create New Order if all user's orders are finished or no orders exist in database
+        if (self.parent.row_order == None):
+            self.cursor = self.parent.connection.cursor()
+            self.query = "INSERT INTO orders (id_user, datetime_initiate) VALUES (%s, %s)"
+            self.cursor.execute(self.query, (self.parent.user_id, datetime.now()))
+            self.parent.connection.commit()
+            print("Created new user Order.")
+
+        # ==========================================================================================================================================================================================
 
     # Grocery Cart Popup Window
     def cart_view(self):
@@ -214,7 +237,7 @@ class frame_login(Frame):
         self.temp_mana.pack(pady=20)
 
 # Registration Frame
-#placeholder
+# placeholder
 
 #--- CUSTOMER USER FRAMES ------------------------------------------
 # Customer Frame: Home
@@ -237,17 +260,20 @@ class frame_cust_home(Frame):
         # Bind mouse wheel event
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
         self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
-        # Access Database: Retrieve "Inventory" table rows data
+        # Open Database Connection
         parent.db_connect()
         self.cursor = parent.connection.cursor()
+        # Access Database: Retrieve "inventory" table rows data
         self.cursor.execute("SELECT * FROM inventory")
-        self.rows_item = self.cursor.fetchall()
-        print(f"Succsesfully retrieved {len(self.rows_item)} rows.")
-        # Initiate Cart Button +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        parent.rows_items = self.cursor.fetchall()
+        print(f"Retrieved {len(parent.rows_items)} rows from \"inventory\" table.")
+        # Access Database: Retrieve "orders" table rows data
+        self.cursor.execute("SELECT * FROM orders")
+        parent.rows_orders = self.cursor.fetchall()
+        print(f"Retrieved {len(parent.rows_orders)} rows from \"orders\" table.")
+        # Initiate Cart Button
         parent.frame_main.initiatecart()
-        #self.cursor = self.parent.connection.cursor()
-        #self.cursor.execute("SELECT * FROM inventory")
-        #self.parent.frame_main = frame_mainheader(self.parent)
+        # Close Database Connection
         parent.db_disconnect()
         # Initialize grocery inventory rows header titles
         Label(self.frame, text="IMAGE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
@@ -261,7 +287,7 @@ class frame_cust_home(Frame):
         # Display retrieved "inventory" table rows
         self.rowcounter = 0
         self.item_image = PhotoImage(file=parent.resource_path("resources/placeholder.png")) #PLACEHOLDER IMAGE--------------------------------------+++++++++++++++++++++++++++++++
-        for self.row in self.rows_item:
+        for self.row in parent.rows_items:
             self.rowcounter += 1
             if self.row[5] == "":
                 x=1#
@@ -274,7 +300,7 @@ class frame_cust_home(Frame):
             Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
             Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="green", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
             Button(self.frame, text="-", font=("Tahoma", 12, "bold"), fg="white", bg="red", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=6, pady=0, padx=5)
-            Label(self.frame, text="     ", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=7, pady=0, padx=0)
+            Label(self.frame, text="- - -", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=7, pady=0, padx=0)
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
             self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
@@ -284,7 +310,7 @@ class frame_cust_home(Frame):
         cursor is over / not over the widget respectively."""
         widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
         widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
-    # palceholder +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # placeholder +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def test(self, item):
         print(item, "Added to cart.")
 
@@ -297,7 +323,6 @@ class frame_admin_home(Frame):
         #placeholder
         self.labeltemp = Label(self, text="placeholder")
         self.labeltemp.pack()
-        #---trial---
         
 #-----------------------------------------------------------------------------------------------------------------
 #--- RUNTIME INITIATE --------------------------------------------------------------------------------------------
