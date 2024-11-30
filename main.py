@@ -11,8 +11,8 @@ from mysql.connector import (connection)
 # Define Classes
 class ShoppingCartSystem(Tk):
     # Initialize variables
-    user_type = ""
-    user_id = ""
+    user_type = None
+    user_id = None
 
     def __init__(self):
         super().__init__()
@@ -154,7 +154,7 @@ class frame_header(Frame):
         self.button_cart = Button(self, image=self.image_cart, command=lambda: self.cart_view()) #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.button_cart.place(x=800,y=33)
         self.button_cart.lift()
-        self.label_cartcount = Label(self, text="(99 items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
+        self.label_cartcount = Label(self, text="(XX items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
         self.label_cartcount.place(x=850,y=112)
 
     # Grocery Cart Popup Window
@@ -173,8 +173,33 @@ class frame_header(Frame):
         self.x_coordinate = int((self.screen_width/2) - (self.window_width/2))
         self.y_coordinate = int((self.screen_height/2) - (self.window_height/2))
         self.cart.geometry("{}x{}+{}+{}".format(self.window_width, self.window_height, self.x_coordinate, self.y_coordinate))
-        # Contents
-        Label(self.cart, text= "Hello World!", font=('Mistral 18 bold')).place(x=150,y=80)
+        # Initialize Canvas
+        self.canvas = Canvas(self.cart)
+        self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
+        # Initialize Scrollbar
+        self.scrollbar = Scrollbar(self.cart, orient=VERTICAL, command=self.canvas.yview)
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        # Configure Canvas
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.config(scrollregion=self.canvas.bbox("all")))
+        # Initialize internal Frame into an internal Window within the Canvas
+        self.frame = Frame(self.canvas)
+        self.canvas.create_window((0,0), window=self.frame, anchor="nw")
+        # Bind mouse wheel event
+        self.canvas.bind("<MouseWheel>", self.on_mousewheel)
+        self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
+        # placeholder content ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        for i in range(50):
+            Label(self.frame, text=f"Item {i+1}").pack(pady=5, padx=10)
+    # Mouse Scroll Wheel event
+    def on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
+    def set_mousewheel(self, widget, command):
+        """Activate / deactivate mousewheel scrolling when
+        cursor is over / not over the widget respectively."""
+        widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
+        widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
 
 #--- USER ACCESS FRAMES --------------------------------------------
 # Login Frame
@@ -200,48 +225,46 @@ class frame_cust_home(Frame):
         # Initialize Canvas
         self.canvas = Canvas(parent)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
-        # mousewheel event to scroll the canvas vertically
-        def on_mousewheel(event):
-            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
         # Initialize Scrollbar
         self.scrollbar = Scrollbar(parent, orient=VERTICAL, command=self.canvas.yview)
         self.scrollbar.pack(side=RIGHT, fill=Y)
         # Configure Canvas
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.bind('<Configure>', lambda e: self.canvas.config(scrollregion=self.canvas.bbox("all")))
-        # Bind mouse wheel event
-        self.canvas.bind_all("<MouseWheel>", on_mousewheel)
         # Initialize internal Frame into an internal Window within the Canvas
         self.frame = Frame(self.canvas)
         self.canvas.create_window((0,0), window=self.frame, anchor="nw")
+        # Bind mouse wheel event
+        self.canvas.bind("<MouseWheel>", self.on_mousewheel)
+        self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
         # Access Database: Retrieve "Inventory" table rows data
         parent.db_connect()
         self.cursor = parent.connection.cursor()
         self.cursor.execute("SELECT * FROM inventory")
-        self.rows = self.cursor.fetchall()
-        print(f"Succsesfully retrieved {len(self.rows)} rows.")
-        # Initiate Order's Cart+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #
+        self.rows_item = self.cursor.fetchall()
+        print(f"Succsesfully retrieved {len(self.rows_item)} rows.")
+        # Initiate Cart Button +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         parent.frame_main.initiatecart()
-        #
         #self.cursor = self.parent.connection.cursor()
         #self.cursor.execute("SELECT * FROM inventory")
         #self.parent.frame_main = frame_mainheader(self.parent)
         parent.db_disconnect()
         # Initialize grocery inventory rows header titles
-        Label(self.frame, text="Image", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, pady=10, padx=0)
-        Label(self.frame, text="Name", font=("Segoe UI", 10, "bold")).grid(row=0, column=1, pady=10, padx=0)
-        Label(self.frame, text="Quantity", font=("Segoe UI", 10, "bold")).grid(row=0, column=2, pady=10, padx=0)
-        Label(self.frame, text="Price", font=("Segoe UI", 10, "bold")).grid(row=0, column=3, pady=10, padx=0)
-        Label(self.frame, text="Category", font=("Segoe UI", 10, "bold")).grid(row=0, column=4, pady=10, padx=0)
+        Label(self.frame, text="IMAGE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
+        Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
+        Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=2, pady=10, padx=0)
+        Label(self.frame, text="PRICE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=3, pady=10, padx=0)
+        Label(self.frame, text="CATEGORY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=4, pady=10, padx=0)
         Label(self.frame, text="").grid(row=0, column=5, pady=10, padx=10)
+        Label(self.frame, text="").grid(row=0, column=6, pady=10, padx=10)
+        Label(self.frame, text="ORDERED", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=7, pady=10, padx=0)
         # Display retrieved "inventory" table rows
         self.rowcounter = 0
         self.item_image = PhotoImage(file=parent.resource_path("resources/placeholder.png")) #PLACEHOLDER IMAGE--------------------------------------+++++++++++++++++++++++++++++++
-        for self.row in self.rows:
+        for self.row in self.rows_item:
             self.rowcounter += 1
             if self.row[5] == "":
-                x=1 # default image
+                x=1#
             else:
                 self.item_image = PhotoImage(file=parent.resource_path(self.row[5]))
             Label(self.frame, image=self.item_image).grid(row=self.rowcounter, column=0, padx=5) #PLACEHOLDER IMAGE-------+++++++++++++++++++++++++++++++
@@ -249,8 +272,19 @@ class frame_cust_home(Frame):
             Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=2, pady=0, padx=0)
             Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=3, pady=0, padx=0)
             Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
-            Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="#A21F6A", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
-
+            Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="green", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
+            Button(self.frame, text="-", font=("Tahoma", 12, "bold"), fg="white", bg="red", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=6, pady=0, padx=5)
+            Label(self.frame, text="     ", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=7, pady=0, padx=0)
+    # Mouse Scroll Wheel event
+    def on_mousewheel(self, event):
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
+    def set_mousewheel(self, widget, command):
+        """Activate / deactivate mousewheel scrolling when
+        cursor is over / not over the widget respectively."""
+        widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
+        widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
+    # palceholder +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def test(self, item):
         print(item, "Added to cart.")
 
@@ -272,56 +306,4 @@ ShoppingCartSystem().mainloop()
 
 #-----------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------------------------------
-'''
-# Connection Test
-try:
-    self.connection = connection.MySQLConnection(
-        host='127.0.0.1',
-        user='root',
-        password='',
-        database='dali_9')
-
-    if self.connection.is_connected():
-        print("Connected to the database")
-        # Step 2: Create a cursor object
-        self.cursor = self.connection.cursor()
-
-        # Step 3: Execute the SQL query to fetch all rows
-        query = "SELECT * FROM inventory;"
-        self.cursor.execute(query)
-
-        # Step 4: Fetch all rows from the query result
-        rows = self.cursor.fetchall()
-
-        # Step 5: Display the results
-        print("Contents of the table 'INVENTORY':")
-        for row in rows:
-            print(row)
-except Error as e:
-    print("Error while connecting to MySQL:", e)
-finally:
-    # Step 6: Close the connection
-    if self.connection.is_connected():
-        self.cursor.close()
-        self.connection.close()
-        print("MySQL connection closed")
-'''
-#-----------------------------------------------------------------------------------------------------------------
-'''
-import hashlib
-# Function to hash a password using MD5
-def hash_password_md5(password: str) -> str:
-    # Encode the password to bytes, then hash it
-    hashed = hashlib.md5(password.encode()).hexdigest()
-    return hashed
-# Example usage
-if __name__ == "__main__":
-    # Input password
-    plain_password = "my_se33c33ure_password"
-
-    # Hash the password
-    hashed_password = hash_password_md5(plain_password)
-    print(f"MD5 Hashed password: {hashed_password}")
-'''
 #-----------------------------------------------------------------------------------------------------------------
