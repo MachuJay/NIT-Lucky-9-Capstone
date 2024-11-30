@@ -14,6 +14,9 @@ class ShoppingCartSystem(Tk):
     # Initialize User Variables
     user_id = None
     user_type = None
+    # Initialize Order Variables
+    orderlist_counters = {}
+    total_quantity = None
     # Initialize Database Rows
     rows_items = None
     rows_orders = None
@@ -56,6 +59,8 @@ class ShoppingCartSystem(Tk):
         self.frame_sub = frame_login(self)
         self.frame_sub.pack()
 
+        print("\n-------------") # Program CLI Logs Spacing
+
 #--- FUNCTIONS ---------------------------------------------------------------------------------------------------
     # Get the absolute path to a resource file (Works in dev and built modes)
     def resource_path(self, relative_path):
@@ -90,7 +95,7 @@ class ShoppingCartSystem(Tk):
         self.frame_sub.pack(fill=BOTH, expand=1)
 
     # Connect to Database
-    def db_connect(self):
+    def db_connect(self, log="silent"):
         try:
             self.connection = connection.MySQLConnection(
                 host="127.0.0.1",
@@ -99,16 +104,58 @@ class ShoppingCartSystem(Tk):
                 database="dali_9"
             )
             if self.connection.is_connected():
-                print("Succesfully connected to database:", self.connection.database)
+                if log == "announce":
+                    print(f"Succesfully connected to database \'{self.connection.database}\'")
                 self.cursor = self.connection.cursor
         except Error as e:
             print("Error while connecting to MySQL:", e)
 
     # Disconnect from Database
-    def db_disconnect(self):
+    def db_disconnect(self, log="silent"):
         if self.connection.is_connected():
-            print("Succesfully disconnected from database:", self.connection.database)
+            if log == "announce":
+                print(f"Succesfully disconnected from database \'{self.connection.database}\'")
             self.connection.close()
+
+    # Update Grocery Cart items count
+    def update_orderitems(self):
+        # Check if database connection is active
+        self.isConnectionActive = False
+        # Initiate temporary database connection
+        if not self.connection.is_connected():
+            self.isConnectionActive = True
+            self.db_connect()
+            print(f"  Temporarily connected to database \'{self.connection.database}\' and updated order list.")
+        # Update Grocery Cart items counter
+        self.cursor = self.connection.cursor()
+        self.cursor.execute("SELECT * FROM orderitems")
+        self.rows_orderitems = self.cursor.fetchall()
+        self.total_quantity = 0
+        for self.row in self.rows_orderitems:
+            self.total_quantity += self.row[2]
+        self.frame_main.label_cartcount.config(text=f"({self.total_quantity}) items")
+        # Update item order list counters
+        if len(self.orderlist_counters) != 0:
+            self.db_connect()
+            self.rowcounter = 0
+            # Traverse entire Grocery Inventory
+            for self.row in self.rows_items:
+                # Check if Grocery item matches an ordered item
+                self.cursor = self.connection.cursor()
+                self.cursor.execute(f"SELECT * FROM orderitems WHERE id_order = {self.row_order[0]} AND id_item = {self.row[0]}")
+                self.row_item = self.cursor.fetchone()
+                # Change corresponding Grocery item's Label counter
+                if self.row_item != None:
+                    self.orderlist_counters[self.rowcounter].config(text=self.row_item[2])
+                else:
+                    self.orderlist_counters[self.rowcounter].config(text="- - -")
+                self.rowcounter += 1
+            self.db_disconnect()
+        # Disconnect temporary database connection
+        if self.isConnectionActive:
+            self.isConnectionActive = False
+            self.db_disconnect()
+            print(f"  Temporary connection disconnected from database \'{self.connection.database}\'")
 
     # Logout User Account
     def logout(self):
@@ -163,13 +210,13 @@ class frame_header(Frame):
         self.button_cart.place(x=800,y=33)
         self.button_cart.lift()
         self.label_cartcount = Label(self, text="(XX items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
-        self.label_cartcount.place(x=850,y=112)
+        self.label_cartcount.place(x=852,y=112)
         # Load Ongoing Order
         for self.row in self.parent.rows_orders:
             # Load unfinished Order
             if (self.row[1] == self.parent.user_id and self.row[4] != True):
                 self.parent.row_order = self.row
-                print("Retrieved current user Order.")
+                print(f"    Retrieved order number \'{self.parent.row_order[0]}\' for user \'{self.parent.user_id}\'.")
         # Create New Order if all user's orders are finished or no orders exist in database
         if (self.parent.row_order == None):
             self.cursor = self.parent.connection.cursor()
@@ -177,8 +224,12 @@ class frame_header(Frame):
             self.cursor.execute(self.query, (self.parent.user_id, datetime.now()))
             self.parent.connection.commit()
             print("Created new user Order.")
-
-        # ==========================================================================================================================================================================================
+        # Update Grocery Cart items count
+        self.parent.update_orderitems()
+        # Update Each Item's Ordered Items count
+        if len(self.parent.rows_orderitems) != 0:
+            self.placeholder=1
+            # update time ================================================================================================================================================
 
     # Grocery Cart Popup Window
     def cart_view(self):
@@ -219,8 +270,6 @@ class frame_header(Frame):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
     # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
     def set_mousewheel(self, widget, command):
-        """Activate / deactivate mousewheel scrolling when
-        cursor is over / not over the widget respectively."""
         widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
         widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
 
@@ -261,21 +310,21 @@ class frame_cust_home(Frame):
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
         self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
         # Open Database Connection
-        parent.db_connect()
+        parent.db_connect("announce")
         self.cursor = parent.connection.cursor()
         # Access Database: Retrieve "inventory" table rows data
         self.cursor.execute("SELECT * FROM inventory")
         parent.rows_items = self.cursor.fetchall()
-        print(f"Retrieved {len(parent.rows_items)} rows from \"inventory\" table.")
+        print(f"    Retrieved \'{len(parent.rows_items)}\' rows from \"inventory\" table.")
         # Access Database: Retrieve "orders" table rows data
         self.cursor.execute("SELECT * FROM orders")
         parent.rows_orders = self.cursor.fetchall()
-        print(f"Retrieved {len(parent.rows_orders)} rows from \"orders\" table.")
+        print(f"    Retrieved \'{len(parent.rows_orders)}\' rows from \"orders\" table.")
         # Initiate Cart Button
         parent.frame_main.initiatecart()
         # Close Database Connection
-        parent.db_disconnect()
-        # Initialize grocery inventory rows header titles
+        parent.db_disconnect("announce")
+        # Initialize Grocery inventory rows header titles
         Label(self.frame, text="IMAGE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
         Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
         Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=2, pady=10, padx=0)
@@ -290,29 +339,100 @@ class frame_cust_home(Frame):
         for self.row in parent.rows_items:
             self.rowcounter += 1
             if self.row[5] == "":
-                x=1#
+                self.placeholder=1
             else:
                 self.item_image = PhotoImage(file=parent.resource_path(self.row[5]))
+            # image
             Label(self.frame, image=self.item_image).grid(row=self.rowcounter, column=0, padx=5) #PLACEHOLDER IMAGE-------+++++++++++++++++++++++++++++++
+            # name
             Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
+            # quantity
             Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=2, pady=0, padx=0)
+            # price
             Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=3, pady=0, padx=0)
+            # category
             Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
-            Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="green", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
-            Button(self.frame, text="-", font=("Tahoma", 12, "bold"), fg="white", bg="red", command=lambda item=self.row[1]: self.test(item)).grid(row=self.rowcounter, column=6, pady=0, padx=5)
-            Label(self.frame, text="- - -", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=7, pady=0, padx=0)
+            # order buttons
+            Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="green", command=lambda item=self.row[0]: self.item_add(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
+            Button(self.frame, text="-", font=("Tahoma", 12, "bold"), fg="white", bg="red", command=lambda item=self.row[0]: self.item_remove(item)).grid(row=self.rowcounter, column=6, pady=0, padx=5)
+            # order counter labels
+            self.label_counter = Label(self.frame, text="- - -", font=("Tahoma", 16, ""))
+            self.label_counter.grid(row=self.rowcounter, column=7, pady=0, padx=0)
+            parent.orderlist_counters[self.rowcounter-1] = self.label_counter
+        # Initialize item order list counters
+        parent.db_connect()
+        self.rowcounter = 0
+        # Traverse entire Grocery Inventory
+        for self.row in parent.rows_items:
+            # Check if Grocery item matches an ordered item
+            self.cursor = self.parent.connection.cursor()
+            self.cursor.execute(f"SELECT * FROM orderitems WHERE id_order = {self.parent.row_order[0]} AND id_item = {self.row[0]}")
+            self.row_item = self.cursor.fetchone()
+            # Change corresponding Grocery item's Label counter
+            if self.row_item != None:
+                parent.orderlist_counters[self.rowcounter].config(text=self.row_item[2])
+            self.rowcounter += 1
+        parent.db_disconnect()
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
             self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
     # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
     def set_mousewheel(self, widget, command):
-        """Activate / deactivate mousewheel scrolling when
-        cursor is over / not over the widget respectively."""
         widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
         widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
-    # placeholder +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    def test(self, item):
-        print(item, "Added to cart.")
+    # Add item to order list
+    def item_add(self, item):
+        # Access Database: Insert row to "orderitems" table
+        self.parent.db_connect()
+        # Check if item is already listed
+        self.cursor = self.parent.connection.cursor()
+        self.cursor.execute(f"SELECT * FROM orderitems WHERE id_order = {self.parent.row_order[0]} AND id_item = {item}")
+        self.row_item = self.cursor.fetchone()
+        self.cursor = self.parent.connection.cursor()
+        # Update table row for existing ordered item
+        if self.row_item != None:
+            self.query = ("UPDATE orderitems SET quantity = %s WHERE id_order = %s AND id_item = %s")
+            self.data = (self.row_item[2]+1, self.row_item[0], self.row_item[1])
+            print(f"    Increased item id \'{item}\' quantity to \'{self.row_item[2]+1}\'.")
+        # Insert row to database
+        else:
+            self.query = "INSERT INTO orderitems (id_order, id_item, quantity) VALUES (%s, %s, %s)"
+            self.data = (self.parent.row_order[0], item, 1)
+            print(f"    Added item id \'{item}\' to order.")
+        # Apply Change
+        self.cursor.execute(self.query, self.data)
+        self.parent.connection.commit()
+        # Update order list items then close Database Connection
+        self.parent.update_orderitems()
+        self.parent.db_disconnect()
+    # Remove item from order list
+    def item_remove(self, item):
+        # Access Database: Remove row from "orderitems" table
+        self.parent.db_connect()
+        # Check if item is already listed
+        self.cursor = self.parent.connection.cursor()
+        self.cursor.execute(f"SELECT * FROM orderitems WHERE id_order = {self.parent.row_order[0]} AND id_item = {item}")
+        self.row_item = self.cursor.fetchone()
+        if self.row_item != None:
+            self.cursor = self.parent.connection.cursor()
+            # Update table row for item quantity change
+            if self.row_item[2] > 1:
+                self.query = ("UPDATE orderitems SET quantity = %s WHERE id_order = %s AND id_item = %s")
+                self.data = (self.row_item[2]-1, self.row_item[0], self.row_item[1])
+                print(f"    Decreased item id \'{item}\' quantity to \'{self.row_item[2]-1}\'.")
+            # Remove row from database
+            else:
+                self.query = "DELETE FROM orderitems WHERE id_order = %s AND id_item = %s"
+                self.data = (self.parent.row_order[0], item)
+                print(f"    Removed item id \'{item}\' from order.")
+            # Apply Change
+            self.cursor.execute(self.query, self.data)
+            self.parent.connection.commit()
+        else:
+            print(f"    Item id \'{item}\' not listed in order.")
+        # Update order list items then close Database Connection
+        self.parent.update_orderitems()
+        self.parent.db_disconnect()
 
 #--- ADMINISTRATOR USER FRAMES -------------------------------------
 # Administrator Frame: Home
