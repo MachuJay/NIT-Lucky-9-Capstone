@@ -14,8 +14,10 @@ class ShoppingCartSystem(Tk):
     # Initialize User Variables
     user_id = None
     user_type = None
+    user_name = None
     # Initialize Order Variables
     orderlist_counters = {}
+    orderlist_images = []
     total_quantity = None
     # Initialize Database Rows
     rows_items = None
@@ -73,23 +75,27 @@ class ShoppingCartSystem(Tk):
         return os.path.join(base_path, relative_path)
     
     # Set user type variable and load respective home interface 
-    def user_authorization(self, type):
+    def user_authorization(self, id):
         # Remove Login Frame then replace Header Frame 
         self.frame_sub.destroy()
         self.frame_main.destroy()
-        # Set user values
-        if type == 0:
-            self.user_id = 0 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++ placeholder (pre-login system) 
-            self.user_type = "administrator"
-        elif type == 1:
-            self.user_id = 1 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++ placeholder (pre-login system) 
-            self.user_type = "customer"
+        # Access Database: Retrieve user row from database
+        self.db_connect()
+        self.cursor = self.connection.cursor()
+        self.cursor.execute(f"SELECT * FROM users WHERE id = {id}")
+        self.row_item = self.cursor.fetchone()
+        self.db_disconnect
+        # Assign user values
+        self.user_id = self.row_item[0]
+        self.user_type = self.row_item[3]
+        self.user_name = self.row_item[4]
+        print(f"Successfully Logged in user \'{self.user_name}\' with user id \'{self.user_id}\'")
         self.frame_main = frame_header(self)
         self.frame_main.pack()
         # Load user home frame
-        if type == 0:
+        if self.user_type == 0:
             self.frame_sub = frame_admin_home(self)
-        elif type == 1:
+        elif self.user_type == 1:
             self.frame_sub = frame_cust_home(self)
         # Add frame to window
         self.frame_sub.pack(fill=BOTH, expand=1)
@@ -195,9 +201,9 @@ class frame_header(Frame):
         self.button_logout = Button(self, text = "LOG OUT", fg="white", bg="red", command=lambda: parent.logout())
         self.button_logout.place(x=950,y=2)
         # Welcome Text
-        if parent.user_type == "customer":
+        if parent.user_type == 1: # Customer
             self.welcometext = "\"Dali-an niyo umorder...\" "
-        elif parent.user_type == "administrator":
+        elif parent.user_type == 0: # Administrator
             self.welcometext = "\"Dali-an mo mag-manage!\" "
         self.label_welcometext = Label(self, text=self.welcometext, fg="white", bg="#A21F6A", font=("Tahoma", 32, "italic"))
         self.label_welcometext.place(x=230,y=60)
@@ -229,19 +235,19 @@ class frame_header(Frame):
         # Update Each Item's Ordered Items count
         if len(self.parent.rows_orderitems) != 0:
             self.placeholder=1
-            # update time ================================================================================================================================================
 
     # Grocery Cart Popup Window
     def cart_view(self):
         # Intiialize Cart Summary popup window
         self.cart = Toplevel(self.parent)
+        self.cart.focus_set()
         self.cart.grab_set()
         # Set Cart Summary popup window's properties and center position to screen
-        self.cart.title("Cart Summary")
+        self.cart.title("Cart Summary and Checkout")
         self.cart.iconbitmap(self.parent.path_icon)
         self.cart.resizable(False, False)
-        self.window_height = 250
-        self.window_width = 750
+        self.window_height = 500
+        self.window_width = 550
         self.screen_width = self.winfo_screenwidth()
         self.screen_height = self.winfo_screenheight()
         self.x_coordinate = int((self.screen_width/2) - (self.window_width/2))
@@ -262,9 +268,57 @@ class frame_header(Frame):
         # Bind mouse wheel event
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
         self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
-        # placeholder content ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        for i in range(50):
-            Label(self.frame, text=f"Item {i+1}").pack(pady=5, padx=10)
+        # Define Receipt Grid text values
+        self.text00 = ("\n\n"
+            "DALI 9: LUCKY 9 INCORPORATED\n"
+            "OPERATED BY: NHT PROGRAM NIT BATCH 4\n"
+            "METRO MANILA, NCR, MANILA, PHILIPPINES\n"
+            "VAT REG TIN: 0100-034-694-001\n"
+            "SN: 185042801632\n"
+            "MIN:19031317134025685\n"
+            "\nSALES INVOICE\n"
+        )
+        self.text10 = (
+            "Terminal\n"
+            "Order #\n"
+            "SI\n"
+            "Customer #\n"
+            "Initiated"
+        )
+        self.text11 = ":\n:\n:\n:\n:"
+        self.text12 = (
+            "GWPOS8\n"
+            f"{self.parent.row_order[0]}\n"
+            "00-451988\n"
+            f"{self.parent.row_order[1]}\n"
+            f"{self.parent.row_order[2]}"
+        )
+        self.text20 = "------------------------------------------------------------------------"
+        self.text30 = "FROZEN FRENCH FRIES"
+        self.text31 = "150.00 Php"
+        self.text40 = "------------------------------------------------------------------------"
+        # Format row and column weights
+        '''self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=10)'''
+        # Format Receipt Grid and assign text values
+        self.fontsize = 14
+        self.fontstyle = "Arial"
+        self.maxcolumns = 3
+        # Section 1 (Header)
+        Label(self.frame, text=self.text00, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=0, column=0, columnspan=self.maxcolumns)
+        # Section 2 (Order Details)
+        Label(self.frame, text=self.text10, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=1, column=0, sticky=W)
+        Label(self.frame, text=self.text11, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=1, column=1)
+        Label(self.frame, text=self.text12, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=1, column=2, sticky=W)
+        # Section 3 (Divider)
+        Label(self.frame, text=self.text20, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=2, column=0, columnspan=self.maxcolumns)
+        # Section 4 (Order Items)
+        Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=3, column=0, sticky=W)
+        Label(self.frame, text=self.text31, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=3, column=1, sticky=E, columnspan=self.maxcolumns-1)
+        # Section 5 (Divider)
+        Label(self.frame, text=self.text40, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=4, column=0, columnspan=self.maxcolumns)
+        # Section 6
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
@@ -279,14 +333,17 @@ class frame_login(Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        # User Login/Registration
-        self.temp_cust = Button(self, text = "Customer", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(1))
+        # User Login/Registration +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.temp_cust = Button(self, text = "Customer", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(1)) #pass user id in param
         self.temp_cust.pack(pady=60)
-        self.temp_mana = Button(self, text = "Administrator", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(0))
+        self.temp_mana = Button(self, text = "Administrator", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(0)) #pass user id in param
         self.temp_mana.pack(pady=20)
+        # verify user's username and password then pass value to user_authorization()
+        #placeholder
 
 # Registration Frame
 # placeholder
+# exit program to "return" to login frame
 
 #--- CUSTOMER USER FRAMES ------------------------------------------
 # Customer Frame: Home
@@ -334,16 +391,19 @@ class frame_cust_home(Frame):
         Label(self.frame, text="").grid(row=0, column=6, pady=10, padx=10)
         Label(self.frame, text="ORDERED", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=7, pady=10, padx=0)
         # Display retrieved "inventory" table rows
+        self.item_placeholder = PhotoImage(file=parent.resource_path("resources/placeholder.png"))
         self.rowcounter = 0
-        self.item_image = PhotoImage(file=parent.resource_path("resources/placeholder.png")) #PLACEHOLDER IMAGE--------------------------------------+++++++++++++++++++++++++++++++
         for self.row in parent.rows_items:
             self.rowcounter += 1
+            # If 'imagepath' value is empty
             if self.row[5] == "":
-                self.placeholder=1
+                self.item_image = self.item_placeholder
             else:
                 self.item_image = PhotoImage(file=parent.resource_path(self.row[5]))
+                parent.orderlist_images.append(self.item_image)
             # image
-            Label(self.frame, image=self.item_image).grid(row=self.rowcounter, column=0, padx=5) #PLACEHOLDER IMAGE-------+++++++++++++++++++++++++++++++
+            self.label_image = Label(self.frame, image=self.item_image)
+            self.label_image.grid(row=self.rowcounter, column=0, padx=5)
             # name
             Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
             # quantity
