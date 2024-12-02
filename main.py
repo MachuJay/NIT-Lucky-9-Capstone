@@ -4,6 +4,7 @@
 # Import packages
 import os, sys
 from tkinter import *
+from decimal import Decimal
 from datetime import datetime
 from mysql.connector import Error
 from mysql.connector import (connection)
@@ -125,13 +126,6 @@ class ShoppingCartSystem(Tk):
 
     # Update Grocery Cart items count
     def update_orderitems(self):
-        # Check if database connection is active
-        self.isConnectionActive = False
-        # Initiate temporary database connection
-        if not self.connection.is_connected():
-            self.isConnectionActive = True
-            self.db_connect()
-            print(f"  Temporarily connected to database \'{self.connection.database}\' and updated order list.")
         # Update Grocery Cart items counter
         self.cursor = self.connection.cursor()
         self.cursor.execute(f"SELECT * FROM orderitems WHERE id_order = {self.row_order[0]}")
@@ -171,12 +165,11 @@ class ShoppingCartSystem(Tk):
             self.cursor = self.connection.cursor()
             self.cursor.execute(f"UPDATE orders SET total = {self.ordertotal} WHERE id_order = {self.row_order[0]}")
             self.connection.commit()
+            # Update local order row
+            self.cursor = self.connection.cursor()
+            self.cursor.execute(f"SELECT * FROM orders WHERE id_order = {self.row_order[0]}")
+            self.row_order = self.cursor.fetchone()
             self.db_disconnect()
-        # Disconnect temporary database connection
-        if self.isConnectionActive:
-            self.isConnectionActive = False
-            self.db_disconnect()
-            print(f"  Temporary connection disconnected from database \'{self.connection.database}\'")
 
     # Logout User Account
     def logout(self):
@@ -259,7 +252,7 @@ class frame_header(Frame):
         self.cart.iconbitmap(self.parent.path_icon)
         self.cart.resizable(False, False)
         self.window_height = 500
-        self.window_width = 550
+        self.window_width = 470
         self.screen_width = self.winfo_screenwidth()
         self.screen_height = self.winfo_screenheight()
         self.x_coordinate = int((self.screen_width/2) - (self.window_width/2))
@@ -281,28 +274,28 @@ class frame_header(Frame):
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
         self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
         # Define Receipt Grid text values
-        self.text00 = (
-            "DALI 9: LUCKY 9 INCORPORATED\n"
-            "OPERATED BY: NHT PROGRAM NIT BATCH 4\n"
+        self.text000 = ("\n"
+            "DALI 9: LUCKY 9 (PBSP INC.)\n"
+            "ACCENTURE INC., Q.C. LGU, EDULYNX CORP.\n"
             "METRO MANILA, NCR, MANILA, PHILIPPINES\n"
             "VAT REG TIN: 0100-034-694-001\n"
             "SN: 185042801632\n"
             "MIN:19031317134025685\n"
-            "\nSALES INVOICE\n"
         )
+        self.text00 = "ORDER INVOICE\n"
         self.text10 = (
             "Terminal\n"
-            "Order #\n"
             "SI\n"
-            "Customer #\n"
+            "Order #\n"
+            "Customer\n"
             "Initiated"
         )
         self.text11 = ":\n:\n:\n:\n:"
         self.text12 = (
-            "GWPOS8\n"
+            "NHT-NIT\n"
+            "Batch-04\n"
             f"{self.parent.row_order[0]}\n"
-            "00-451988\n"
-            f"{self.parent.row_order[1]}\n"
+            f"{self.parent.user_name}-{self.parent.row_order[1]}\n"
             f"{self.parent.row_order[2]}"
         )
         self.text20 = "------------------------------------------------------------------------"
@@ -328,31 +321,61 @@ class frame_header(Frame):
         else:
             self.text30 = "Order List for active order is empty."
         self.text40 = "------------------------------------------------------------------------"
-        # Format row and column weights
-        '''self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=10)'''
+        self.text50 = self.parent.total_quantity
+        self.text51 = "Item(s)"
+        self.text52 = f"Php {self.parent.row_order[5]}"
+        self.text60 = "--------------"
+        self.text70 = ("\n"
+            "VATABLE SALES\n"
+            "Total Sales\n"
+            "VAT AMOUNT (12%)"
+        )
+        self.text71 = "\n:\n:\n:"
+        self.tax = round(self.parent.row_order[5]*Decimal(0.12), 2)
+        self.text72 = ("\n"
+            f"{self.parent.row_order[5]-self.tax}\n"
+            f"{self.parent.row_order[5]-self.tax}\n"
+            f"{self.tax}"
+        )
+        self.text80 = "Total Amount\n\n" #placeholder
+        self.text81 = ":\n\n" #placeholder
+        self.text82 = f"{self.parent.row_order[5]}\n\n" #placeholder
         # Format Receipt Grid and assign text values
         self.fontsize = 14
         self.fontstyle = "Arial"
         self.maxcolumns = 4
         # Section 1 (Header)
-        Label(self.frame, text=self.text00, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=0, column=0, columnspan=self.maxcolumns)
+        Label(self.frame, text=self.text000, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=0, column=0, columnspan=self.maxcolumns)
+        Label(self.frame, text=self.text00, font=(self.fontstyle, self.fontsize, "bold"), fg="black").grid(row=1, column=0, columnspan=self.maxcolumns)
         # Section 2 (Order Details)
-        Label(self.frame, text=self.text10, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=1, column=0, sticky=W)
-        Label(self.frame, text=self.text11, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=1, column=1, columnspan=2)
-        Label(self.frame, text=self.text12, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=1, column=3, sticky=W)
+        Label(self.frame, text=self.text10, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=2, column=0, sticky=W)
+        Label(self.frame, text=self.text11, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=2, column=1, sticky=W, columnspan=2)
+        Label(self.frame, text=self.text12, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=2, column=3, sticky=W)
         # Section 3 (Divider)
-        Label(self.frame, text=self.text20, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=2, column=0, columnspan=self.maxcolumns)
+        Label(self.frame, text=self.text20, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=3, column=0, columnspan=self.maxcolumns)
         # Section 4 (Order Items)
         if self.parent.rows_orderitems == []:
-            Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=3, column=0, columnspan=self.maxcolumns)
+            Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=4, column=0, columnspan=self.maxcolumns)
         else:
-            Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=3, column=0, sticky=W, columnspan = 3)
-            Label(self.frame, text=self.text31, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black", bg="white").grid(row=3, column=3, sticky=E)
+            Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=4, column=0, sticky=W, columnspan=3)
+            Label(self.frame, text=self.text31, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=4, column=3, sticky=E)
         # Section 5 (Divider)
-        Label(self.frame, text=self.text40, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=4, column=0, columnspan=self.maxcolumns)
-        # Section 6\
+        Label(self.frame, text=self.text40, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=5, column=0, columnspan=self.maxcolumns)
+        # Section 6 (Quantity and Price Totals)
+        Label(self.frame, text=self.text50, font=(self.fontstyle, self.fontsize, "bold"), justify=LEFT, fg="black").grid(row=6, column=0)
+        Label(self.frame, text=self.text51, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=6, column=1, sticky=W)
+        Label(self.frame, text=self.text52, font=(self.fontstyle, self.fontsize, "bold"), justify=RIGHT, fg="black").grid(row=6, column=2, sticky=E, columnspan=2)
+        # Section 7 (Subdivider)
+        Label(self.frame, text=self.text60, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=7, column=0, stick=E, columnspan=self.maxcolumns)
+        # Section 8 (VAT)
+        Label(self.frame, text=self.text70, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=8, column=0, sticky=W)
+        Label(self.frame, text=self.text71, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=8, column=1, sticky=W)
+        Label(self.frame, text=self.text72, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=8, column=2, sticky=W, columnspan=2)
+        # Section 9 (Total)
+        Label(self.frame, text=self.text80, font=(self.fontstyle, self.fontsize, "bold"), justify=LEFT, fg="black").grid(row=9, column=0, sticky=W)
+        Label(self.frame, text=self.text81, font=(self.fontstyle, self.fontsize, "bold"), fg="black").grid(row=8, column=9, sticky=W)
+        Label(self.frame, text=self.text82, font=(self.fontstyle, self.fontsize, "bold"), justify=RIGHT, fg="black").grid(row=9, column=2, sticky=W, columnspan=2)
+        # Section 10 
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
