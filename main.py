@@ -134,7 +134,7 @@ class ShoppingCartSystem(Tk):
             print(f"  Temporarily connected to database \'{self.connection.database}\' and updated order list.")
         # Update Grocery Cart items counter
         self.cursor = self.connection.cursor()
-        self.cursor.execute("SELECT * FROM orderitems")
+        self.cursor.execute(f"SELECT * FROM orderitems WHERE id_order = {self.row_order[0]}")
         self.rows_orderitems = self.cursor.fetchall()
         self.total_quantity = 0
         for self.row in self.rows_orderitems:
@@ -156,6 +156,21 @@ class ShoppingCartSystem(Tk):
                 else:
                     self.orderlist_counters[self.rowcounter].config(text="- - -")
                 self.rowcounter += 1
+            # Update active order's total price
+            self.ordertotal = 0
+            # Traverse order items list
+            for self.row_orderitem in self.rows_orderitems:
+                # If Item is listed in active order
+                if self.row_orderitem[0] == self.row_order[0]:
+                    # Traverse inventory items list to retrieve item price then update total active order price
+                    for self.row_item in self.rows_items:
+                        if self.row_item[0] == self.row_orderitem[1]:
+                            self.subtotal = self.row_item[3] * self.row_orderitem[2]
+                            self.ordertotal += self.subtotal
+            # Database Access: Commit current order total column update to database
+            self.cursor = self.connection.cursor()
+            self.cursor.execute(f"UPDATE orders SET total = {self.ordertotal} WHERE id_order = {self.row_order[0]}")
+            self.connection.commit()
             self.db_disconnect()
         # Disconnect temporary database connection
         if self.isConnectionActive:
@@ -232,9 +247,6 @@ class frame_header(Frame):
             print("Created new user Order.")
         # Update Grocery Cart items count
         self.parent.update_orderitems()
-        # Update Each Item's Ordered Items count
-        if len(self.parent.rows_orderitems) != 0:
-            self.placeholder=1
 
     # Grocery Cart Popup Window
     def cart_view(self):
@@ -269,7 +281,7 @@ class frame_header(Frame):
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
         self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
         # Define Receipt Grid text values
-        self.text00 = ("\n\n"
+        self.text00 = (
             "DALI 9: LUCKY 9 INCORPORATED\n"
             "OPERATED BY: NHT PROGRAM NIT BATCH 4\n"
             "METRO MANILA, NCR, MANILA, PHILIPPINES\n"
@@ -294,8 +306,27 @@ class frame_header(Frame):
             f"{self.parent.row_order[2]}"
         )
         self.text20 = "------------------------------------------------------------------------"
-        self.text30 = "FROZEN FRENCH FRIES"
-        self.text31 = "150.00 Php"
+        # Traverse order list items for active order
+        if self.parent.rows_orderitems != []:
+            self.text30 = ""
+            self.text31 = ""
+            # Traverse current order items
+            for self.orderitem in self.parent.rows_orderitems:
+                # Compare to each inventory item to retrieve item name and price
+                for self.item in self.parent.rows_items:
+                    # If item id matches
+                    if self.item[0] == self.orderitem[1]:
+                        # Retrieve name
+                        self.text30 = f"{self.text30}\n{self.item[1].upper()}"
+                        # If item quantity > 1, subtotal price
+                        if self.orderitem[2] > 1:
+                            self.text30 = f"{self.text30}\n\t{self.orderitem[2]} X\t{self.item[3]}"
+                            self.text31 = f"{self.text31}\n\n{self.orderitem[2]*self.item[3]}"
+                        # Otherwise, retrieve retail price
+                        else:
+                            self.text31 = f"{self.text31}\n{self.item[3]}"
+        else:
+            self.text30 = "Order List for active order is empty."
         self.text40 = "------------------------------------------------------------------------"
         # Format row and column weights
         '''self.grid_columnconfigure(0, weight=1)
@@ -304,21 +335,24 @@ class frame_header(Frame):
         # Format Receipt Grid and assign text values
         self.fontsize = 14
         self.fontstyle = "Arial"
-        self.maxcolumns = 3
+        self.maxcolumns = 4
         # Section 1 (Header)
         Label(self.frame, text=self.text00, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=0, column=0, columnspan=self.maxcolumns)
         # Section 2 (Order Details)
         Label(self.frame, text=self.text10, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=1, column=0, sticky=W)
-        Label(self.frame, text=self.text11, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=1, column=1)
-        Label(self.frame, text=self.text12, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=1, column=2, sticky=W)
+        Label(self.frame, text=self.text11, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=1, column=1, columnspan=2)
+        Label(self.frame, text=self.text12, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=1, column=3, sticky=W)
         # Section 3 (Divider)
         Label(self.frame, text=self.text20, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=2, column=0, columnspan=self.maxcolumns)
         # Section 4 (Order Items)
-        Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=3, column=0, sticky=W)
-        Label(self.frame, text=self.text31, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=3, column=1, sticky=E, columnspan=self.maxcolumns-1)
+        if self.parent.rows_orderitems == []:
+            Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=3, column=0, columnspan=self.maxcolumns)
+        else:
+            Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black", bg="white").grid(row=3, column=0, sticky=W, columnspan = 3)
+            Label(self.frame, text=self.text31, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black", bg="white").grid(row=3, column=3, sticky=E)
         # Section 5 (Divider)
         Label(self.frame, text=self.text40, font=(self.fontstyle, self.fontsize, ""), fg="black", bg="white").grid(row=4, column=0, columnspan=self.maxcolumns)
-        # Section 6
+        # Section 6\
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
