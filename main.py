@@ -93,12 +93,12 @@ class ShoppingCartSystem(Tk):
         print(f"Successfully Logged in user \'{self.user_name}\' with user id \'{self.user_id}\'")
         self.frame_main = frame_header(self)
         self.frame_main.pack()
-        # Load user home frame
+        # Load user home Frame
         if self.user_type == 0:
             self.frame_sub = frame_admin_home(self)
         elif self.user_type == 1:
             self.frame_sub = frame_cust_home(self)
-        # Add frame to window
+        # Add Frame to window
         self.frame_sub.pack(fill=BOTH, expand=1)
 
     # Connect to Database
@@ -127,6 +127,7 @@ class ShoppingCartSystem(Tk):
     # Update Grocery Cart items count
     def update_orderitems(self):
         # Update Grocery Cart items counter
+        self.db_connect()
         self.cursor = self.connection.cursor()
         self.cursor.execute(f"SELECT * FROM orderitems WHERE id_order = {self.row_order[0]}")
         self.rows_orderitems = self.cursor.fetchall()
@@ -225,13 +226,13 @@ class frame_header(Frame):
         self.button_cart.lift()
         self.label_cartcount = Label(self, text="(XX items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
         self.label_cartcount.place(x=852,y=112)
-        # Load Ongoing Order
+        # Load active user order
         for self.row in self.parent.rows_orders:
             # Load unfinished Order
             if (self.row[1] == self.parent.user_id and self.row[4] != True):
                 self.parent.row_order = self.row
                 print(f"    Retrieved order number \'{self.parent.row_order[0]}\' for user \'{self.parent.user_id}\'.")
-        # Create New Order if all user's orders are finished or no orders exist in database
+        # Create new order if all user's orders are finished or no orders exist in database
         if (self.parent.row_order == None):
             self.cursor = self.parent.connection.cursor()
             self.query = "INSERT INTO orders (id_user, datetime_initiate) VALUES (%s, %s)"
@@ -311,7 +312,7 @@ class frame_header(Frame):
                     if self.item[0] == self.orderitem[1]:
                         # Retrieve name
                         self.text30 = f"{self.text30}\n{self.item[1].upper()}"
-                        # If item quantity > 1, subtotal price
+                        # If item quantity > 1, subtotal price (price * quantity)
                         if self.orderitem[2] > 1:
                             self.text30 = f"{self.text30}\n\t{self.orderitem[2]} X\t{self.item[3]}"
                             self.text31 = f"{self.text31}\n\n{self.orderitem[2]*self.item[3]}"
@@ -325,21 +326,29 @@ class frame_header(Frame):
         self.text51 = "Item(s)"
         self.text52 = f"Php {self.parent.row_order[5]}"
         self.text60 = "--------------"
-        self.text70 = ("\n"
+        self.cash = 10
+        while self.cash < self.parent.row_order[5]:
+            self.cash *= 10
+        self.text70 = "Amount Due:\nCash:"
+        self.text71 = f"{self.parent.row_order[5]}\n{self.cash}.00"
+        self.text80 = "--------------"
+        self.text90 = "CHANGE:"
+        self.text91 = f"{self.cash-self.parent.row_order[5]}"
+        self.text100 = ("\n"
             "VATABLE SALES\n"
             "Total Sales\n"
             "VAT AMOUNT (12%)"
         )
-        self.text71 = "\n:\n:\n:"
+        self.text101 = "\n:\n:\n:"
         self.tax = round(self.parent.row_order[5]*Decimal(0.12), 2)
-        self.text72 = ("\n"
+        self.text102 = ("\n"
             f"{self.parent.row_order[5]-self.tax}\n"
             f"{self.parent.row_order[5]-self.tax}\n"
             f"{self.tax}"
         )
-        self.text80 = "Total Amount\n\n" #placeholder
-        self.text81 = ":\n\n" #placeholder
-        self.text82 = f"{self.parent.row_order[5]}\n\n" #placeholder
+        self.text110 = "Total Amount\n\n" #placeholder ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CHECKOUT BUTTON
+        self.text111 = ":\n\n"
+        self.text112 = f"{self.parent.row_order[5]}\n\n" #placeholder
         # Format Receipt Grid and assign text values
         self.fontsize = 14
         self.fontstyle = "Arial"
@@ -367,15 +376,23 @@ class frame_header(Frame):
         Label(self.frame, text=self.text52, font=(self.fontstyle, self.fontsize, "bold"), justify=RIGHT, fg="black").grid(row=6, column=2, sticky=E, columnspan=2)
         # Section 7 (Subdivider)
         Label(self.frame, text=self.text60, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=7, column=0, stick=E, columnspan=self.maxcolumns)
-        # Section 8 (VAT)
-        Label(self.frame, text=self.text70, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=8, column=0, sticky=W)
-        Label(self.frame, text=self.text71, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=8, column=1, sticky=W)
-        Label(self.frame, text=self.text72, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=8, column=2, sticky=W, columnspan=2)
-        # Section 9 (Total)
-        Label(self.frame, text=self.text80, font=(self.fontstyle, self.fontsize, "bold"), justify=LEFT, fg="black").grid(row=9, column=0, sticky=W)
-        Label(self.frame, text=self.text81, font=(self.fontstyle, self.fontsize, "bold"), fg="black").grid(row=8, column=9, sticky=W)
-        Label(self.frame, text=self.text82, font=(self.fontstyle, self.fontsize, "bold"), justify=RIGHT, fg="black").grid(row=9, column=2, sticky=W, columnspan=2)
-        # Section 10 
+        # Section 8 (Amount Due and Cashk
+        Label(self.frame, text=self.text70, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=8, column=0, sticky=E, columnspan=2)
+        Label(self.frame, text=self.text71, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=8, column=2, sticky=E, columnspan=2)
+        # Section 9 (Subdivider)
+        Label(self.frame, text=self.text80, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=9, column=0, stick=E, columnspan=self.maxcolumns)
+        # Section 10 (Change)
+        Label(self.frame, text=self.text90, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=10, column=0, sticky=E, columnspan=2)
+        Label(self.frame, text=self.text91, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=10, column=2, sticky=E, columnspan=2)
+        # Section 11 (VAT)
+        Label(self.frame, text=self.text100, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=11, column=0, sticky=W)
+        Label(self.frame, text=self.text101, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=11, column=1, sticky=W)
+        Label(self.frame, text=self.text102, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=11, column=2, sticky=W, columnspan=2)
+        # Section 12 (Total)
+        Label(self.frame, text=self.text110, font=(self.fontstyle, self.fontsize, "bold"), justify=LEFT, fg="black").grid(row=12, column=0, sticky=W)
+        Label(self.frame, text=self.text111, font=(self.fontstyle, self.fontsize, "bold"), justify=LEFT, fg="black").grid(row=12, column=1, sticky=W)
+        Label(self.frame, text=self.text112, font=(self.fontstyle, self.fontsize, "bold"), justify=RIGHT, fg="black").grid(row=12, column=2, sticky=W, columnspan=2)
+        self.parent.update_orderitems()
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
@@ -390,7 +407,7 @@ class frame_login(Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        # User Login/Registration +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # User Login/Registration
         self.temp_cust = Button(self, text = "Customer", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(1)) #pass user id in param
         self.temp_cust.pack(pady=60)
         self.temp_mana = Button(self, text = "Administrator", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(0)) #pass user id in param
@@ -557,9 +574,93 @@ class frame_admin_home(Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        #placeholder
-        self.labeltemp = Label(self, text="placeholder")
-        self.labeltemp.pack()
+
+        self.canvastime(parent)
+
+        '''for x in range(50):
+            Label(self.frame, text="placeholder", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=x, column=0, pady=10, padx=0)'''
+    
+    # test
+    def canvastime(self, parent):
+        # Initialize Canvas
+        self.canvas = Canvas(parent)
+        self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
+        # Initialize Scrollbar
+        self.scrollbar = Scrollbar(parent, orient=VERTICAL, command=self.canvas.yview)
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        # Configure Canvas
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.config(scrollregion=self.canvas.bbox("all")))
+        # Initialize internal Frame into an internal Window within the Canvas
+        self.frame = Frame(self.canvas)
+        self.canvas.create_window((0,0), window=self.frame, anchor="nw")
+        # Bind mouse wheel event
+        self.canvas.bind("<MouseWheel>", self.on_mousewheel)
+        self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
+        # Open Database Connection
+        parent.db_connect("announce")
+        self.cursor = parent.connection.cursor()
+        # Access Database: Retrieve "inventory" table rows data
+        self.cursor.execute("SELECT * FROM inventory")
+        parent.rows_items = self.cursor.fetchall()
+        print(f"    Retrieved \'{len(parent.rows_items)}\' rows from \"inventory\" table.")
+        # Close Database Connection
+        parent.db_disconnect("announce")
+        # Initialize Grocery inventory rows header titles
+        Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
+        Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
+        Label(self.frame, text="PRICE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=2, pady=10, padx=0)
+        Label(self.frame, text="").grid(row=0, column=3, pady=10, padx=10)
+        Label(self.frame, text="CATEGORY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=4, pady=10, padx=0)
+        # Display retrieved "inventory" table rows
+        self.item_placeholder = PhotoImage(file=parent.resource_path("resources/placeholder.png"))
+        self.rowcounter = 0
+        for self.row in parent.rows_items:
+            self.rowcounter += 1
+            # name
+            Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=0, pady=0, padx=0)
+            # quantity
+            Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
+            # price
+            Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=2, pady=0, padx=0)
+            # adjust price buttons
+            self.fg = ""
+            self.bg = ""
+            if self.rowcounter % 2 == 0:
+                self.fg = "white"
+                self.bg = "black"
+            else:
+                self.fg = "black"
+                self.bg = "white"
+            Button(self.frame, text="Adjust Price", font=("Tahoma", 12, "bold"), fg=self.fg, bg=self.bg, command=lambda id=self.row[0]: self.adjustprice(id)).grid(row=self.rowcounter, column=3, pady=0, padx=0)
+            # category
+            Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
+    # Mouse Scroll Wheel event
+    def on_mousewheel(self, event):
+            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
+    def set_mousewheel(self, widget, command):
+        widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
+        widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
+    def adjustprice(self, id):
+        # Intiialize Cart Summary popup window
+        self.cart = Toplevel(self.parent)
+        self.cart.focus_set()
+        self.cart.grab_set()
+        # Set Cart Summary popup window's properties and center position to screen
+        self.cart.title("Cart Summary and Checkout")
+        self.cart.iconbitmap(self.parent.path_icon)
+        self.cart.resizable(False, False)
+        self.window_height = 500
+        self.window_width = 470
+        self.screen_width = self.winfo_screenwidth()
+        self.screen_height = self.winfo_screenheight()
+        self.x_coordinate = int((self.screen_width/2) - (self.window_width/2))
+        self.y_coordinate = int((self.screen_height/2) - (self.window_height/2))
+        self.cart.geometry("{}x{}+{}+{}".format(self.window_width, self.window_height, self.x_coordinate, self.y_coordinate))
+        # User input to change item price
+        print(id)
+        Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
         
 #-----------------------------------------------------------------------------------------------------------------
 #--- RUNTIME INITIATE --------------------------------------------------------------------------------------------
