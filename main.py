@@ -137,6 +137,7 @@ class ShoppingCartSystem(tk.Tk):
         for self.row in self.rows_orderitems:
             self.total_quantity += self.row[2]
         self.frame_main.label_cartcount.config(text=f"({self.total_quantity}) items")
+        
         # Update item order list counters
         if len(self.orderlist_counters) != 0:
             self.db_connect()

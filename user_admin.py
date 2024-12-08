@@ -7,6 +7,7 @@ from mysql.connector import Error
 
 # Administrator Frame: Home
 class frame_admin_home(tk.Frame):
+
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -34,6 +35,7 @@ class frame_admin_home(tk.Frame):
         # Bind mouse wheel event
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
         self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
+
         # Open Database Connection
         parent.db_connect("announce")
         self.cursor = parent.connection.cursor()
@@ -43,6 +45,7 @@ class frame_admin_home(tk.Frame):
         print(f"    Retrieved \'{len(parent.rows_items)}\' rows from \"inventory\" table.")
         # Close Database Connection
         parent.db_disconnect("announce")
+
         # Initialize Grocery inventory rows header titles
         tk.Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
         tk.Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
@@ -73,13 +76,17 @@ class frame_admin_home(tk.Frame):
             tk.Button(self.frame, text="Adjust Price", font=("Tahoma", 12, "bold"), fg=self.fg, bg=self.bg, command=lambda id=self.row[0]: self.adjustprice(id)).grid(row=self.rowcounter, column=3, pady=0, padx=0)
             # category
             tk.Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
+
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
     # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
     def set_mousewheel(self, widget, command):
         widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
         widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
+
+    # Change item price
     def adjustprice(self, id):
         # Intiialize Cart Summary popup window
         self.cart = tk.Toplevel(self.parent)

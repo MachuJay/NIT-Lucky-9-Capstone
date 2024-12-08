@@ -7,9 +7,11 @@ from mysql.connector import Error
 
 # Customer Frame: Home
 class frame_cust_home(tk.Frame):
+    
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
+
         # Initialize Canvas
         self.canvas = tk.Canvas(parent)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
@@ -25,6 +27,7 @@ class frame_cust_home(tk.Frame):
         # Bind mouse wheel event
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
         self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
+
         # Open Database Connection
         parent.db_connect("announce")
         self.cursor = parent.connection.cursor()
@@ -40,6 +43,7 @@ class frame_cust_home(tk.Frame):
         parent.frame_main.initiatecart()
         # Close Database Connection
         parent.db_disconnect("announce")
+
         # Initialize Grocery inventory rows header titles
         tk.Label(self.frame, text="IMAGE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
         tk.Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
@@ -49,6 +53,7 @@ class frame_cust_home(tk.Frame):
         tk.Label(self.frame, text="").grid(row=0, column=5, pady=10, padx=10)
         tk.Label(self.frame, text="").grid(row=0, column=6, pady=10, padx=10)
         tk.Label(self.frame, text="ORDERED", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=7, pady=10, padx=0)
+
         # Display retrieved "inventory" table rows
         self.item_placeholder = tk.PhotoImage(file=parent.resource_path("resources/placeholder.png"))
         self.rowcounter = 0
@@ -78,6 +83,7 @@ class frame_cust_home(tk.Frame):
             self.label_counter = tk.Label(self.frame, text="- - -", font=("Tahoma", 16, ""))
             self.label_counter.grid(row=self.rowcounter, column=7, pady=0, padx=0)
             parent.orderlist_counters[self.rowcounter-1] = self.label_counter
+
         # Initialize item order list counters
         parent.db_connect()
         self.rowcounter = 0
@@ -92,13 +98,16 @@ class frame_cust_home(tk.Frame):
                 parent.orderlist_counters[self.rowcounter].config(text=self.row_item[2])
             self.rowcounter += 1
         parent.db_disconnect()
+
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
             self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
     # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
     def set_mousewheel(self, widget, command):
         widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
         widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
+
     # Add item to order list
     def item_add(self, item):
         # Access Database: Insert row to "orderitems" table
@@ -124,6 +133,7 @@ class frame_cust_home(tk.Frame):
         # Update order list items then close Database Connection
         self.parent.update_orderitems()
         self.parent.db_disconnect()
+
     # Remove item from order list
     def item_remove(self, item):
         # Access Database: Remove row from "orderitems" table

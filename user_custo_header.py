@@ -8,9 +8,11 @@ from datetime import datetime
 
 # Dali 9 Brand Conventional Header Frame (Customer)
 class frame_header(tk.Frame):
+
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
+
         # Brand Intro Banner
         self.image_banner = tk.PhotoImage(file=parent.path_banner)
         self.label_banner = tk.Label(self, image=self.image_banner)
@@ -72,6 +74,7 @@ class frame_header(tk.Frame):
         self.x_coordinate = int((self.screen_width/2) - (self.window_width/2))
         self.y_coordinate = int((self.screen_height/2) - (self.window_height/2))
         self.cart.geometry("{}x{}+{}+{}".format(self.window_width, self.window_height, self.x_coordinate, self.y_coordinate))
+
         # Initialize Canvas
         self.canvas = tk.Canvas(self.cart)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
@@ -87,6 +90,7 @@ class frame_header(tk.Frame):
         # Bind mouse wheel event
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
         self.canvas.bind("<MouseWheel>", self.set_mousewheel(self.canvas, self.on_mousewheel))
+
         # Define Receipt Grid text values
         self.text000 = ("\n"
             "DALI 9: LUCKY 9 (PBSP INC.)\n"
@@ -162,6 +166,7 @@ class frame_header(tk.Frame):
         self.text110 = "Total Amount\n\n" #placeholder ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ CHECKOUT BUTTON
         self.text111 = ":\n\n"
         self.text112 = f"{self.parent.row_order[5]}\n\n" #placeholder
+
         # Format Receipt Grid and assign text values
         self.fontsize = 14
         self.fontstyle = "Arial"
@@ -206,9 +211,11 @@ class frame_header(tk.Frame):
         tk.Label(self.frame, text=self.text111, font=(self.fontstyle, self.fontsize, "bold"), justify=tk.LEFT, fg="black").grid(row=12, column=1, sticky=tk.W)
         tk.Label(self.frame, text=self.text112, font=(self.fontstyle, self.fontsize, "bold"), justify=tk.RIGHT, fg="black").grid(row=12, column=2, sticky=tk.W, columnspan=2)
         self.parent.update_orderitems()
+
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        
     # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
     def set_mousewheel(self, widget, command):
         widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
