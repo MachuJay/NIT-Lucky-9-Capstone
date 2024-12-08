@@ -2,24 +2,25 @@
 #-----------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------
 # Import packages
-from tkinter import *
+import tkinter as tk
+from mysql.connector import Error
 
 # Customer Frame: Home
-class frame_cust_home(Frame):
+class frame_cust_home(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         # Initialize Canvas
-        self.canvas = Canvas(parent)
-        self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
+        self.canvas = tk.Canvas(parent)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         # Initialize Scrollbar
-        self.scrollbar = Scrollbar(parent, orient=VERTICAL, command=self.canvas.yview)
-        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.scrollbar = tk.Scrollbar(parent, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         # Configure Canvas
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.bind('<Configure>', lambda e: self.canvas.config(scrollregion=self.canvas.bbox("all")))
         # Initialize internal Frame into an internal Window within the Canvas
-        self.frame = Frame(self.canvas)
+        self.frame = tk.Frame(self.canvas)
         self.canvas.create_window((0,0), window=self.frame, anchor="nw")
         # Bind mouse wheel event
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
@@ -40,16 +41,16 @@ class frame_cust_home(Frame):
         # Close Database Connection
         parent.db_disconnect("announce")
         # Initialize Grocery inventory rows header titles
-        Label(self.frame, text="IMAGE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
-        Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
-        Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=2, pady=10, padx=0)
-        Label(self.frame, text="PRICE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=3, pady=10, padx=0)
-        Label(self.frame, text="CATEGORY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=4, pady=10, padx=0)
-        Label(self.frame, text="").grid(row=0, column=5, pady=10, padx=10)
-        Label(self.frame, text="").grid(row=0, column=6, pady=10, padx=10)
-        Label(self.frame, text="ORDERED", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=7, pady=10, padx=0)
+        tk.Label(self.frame, text="IMAGE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
+        tk.Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
+        tk.Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=2, pady=10, padx=0)
+        tk.Label(self.frame, text="PRICE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=3, pady=10, padx=0)
+        tk.Label(self.frame, text="CATEGORY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=4, pady=10, padx=0)
+        tk.Label(self.frame, text="").grid(row=0, column=5, pady=10, padx=10)
+        tk.Label(self.frame, text="").grid(row=0, column=6, pady=10, padx=10)
+        tk.Label(self.frame, text="ORDERED", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=7, pady=10, padx=0)
         # Display retrieved "inventory" table rows
-        self.item_placeholder = PhotoImage(file=parent.resource_path("resources/placeholder.png"))
+        self.item_placeholder = tk.PhotoImage(file=parent.resource_path("resources/placeholder.png"))
         self.rowcounter = 0
         for self.row in parent.rows_items:
             self.rowcounter += 1
@@ -57,24 +58,24 @@ class frame_cust_home(Frame):
             if self.row[5] == "":
                 self.item_image = self.item_placeholder
             else:
-                self.item_image = PhotoImage(file=parent.resource_path(self.row[5]))
+                self.item_image = tk.PhotoImage(file=parent.resource_path(self.row[5]))
                 parent.orderlist_images.append(self.item_image)
             # image
-            self.label_image = Label(self.frame, image=self.item_image)
+            self.label_image = tk.Label(self.frame, image=self.item_image)
             self.label_image.grid(row=self.rowcounter, column=0, padx=5)
             # name
-            Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
+            tk.Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
             # quantity
-            Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=2, pady=0, padx=0)
+            tk.Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=2, pady=0, padx=0)
             # price
-            Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=3, pady=0, padx=0)
+            tk.Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=3, pady=0, padx=0)
             # category
-            Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
+            tk.Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
             # order buttons
-            Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="green", command=lambda item=self.row[0]: self.item_add(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
-            Button(self.frame, text="-", font=("Tahoma", 12, "bold"), fg="white", bg="red", command=lambda item=self.row[0]: self.item_remove(item)).grid(row=self.rowcounter, column=6, pady=0, padx=5)
+            tk.Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="green", command=lambda item=self.row[0]: self.item_add(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
+            tk.Button(self.frame, text="-", font=("Tahoma", 12, "bold"), fg="white", bg="red", command=lambda item=self.row[0]: self.item_remove(item)).grid(row=self.rowcounter, column=6, pady=0, padx=5)
             # order counter labels
-            self.label_counter = Label(self.frame, text="- - -", font=("Tahoma", 16, ""))
+            self.label_counter = tk.Label(self.frame, text="- - -", font=("Tahoma", 16, ""))
             self.label_counter.grid(row=self.rowcounter, column=7, pady=0, padx=0)
             parent.orderlist_counters[self.rowcounter-1] = self.label_counter
         # Initialize item order list counters

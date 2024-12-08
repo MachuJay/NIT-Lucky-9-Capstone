@@ -6,13 +6,13 @@ import os, sys
 import login
 import user_custo, user_admin
 import user_custo_header
-from tkinter import *
+import tkinter as tk
 from mysql.connector import Error
 from mysql.connector import (connection)
 
 #--- MAIN WINDOW -------------------------------------------------------------------------------------------------
 # Define Classes
-class ShoppingCartSystem(Tk):
+class ShoppingCartSystem(tk.Tk):
     # Initialize User Variables
     user_id = None
     user_type = None
@@ -101,7 +101,7 @@ class ShoppingCartSystem(Tk):
         elif self.user_type == 1:
             self.frame_sub = user_custo.frame_cust_home(self)
         # Add Frame to window
-        self.frame_sub.pack(fill=BOTH, expand=1)
+        self.frame_sub.pack(fill=tk.BOTH, expand=1)
 
     # Connect to Database
     def db_connect(self, log="silent"):
@@ -182,16 +182,16 @@ class ShoppingCartSystem(Tk):
 #-----------------------------------------------------------------------------------------------------------------
 #--- HEADER FRAMES -----------------------------------------------------------------------------------------------
 # Dali 9 Brand Header Frame
-class frame_mainheader(Frame):
+class frame_mainheader(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         # Brand Intro Banner
-        self.image_banner = PhotoImage(file=parent.path_mainbanner)
-        self.label_banner = Label(self, image=self.image_banner)
+        self.image_banner = tk.PhotoImage(file=parent.path_mainbanner)
+        self.label_banner = tk.Label(self, image=self.image_banner)
         self.label_banner.pack()
-        self.image_brand = PhotoImage(file=parent.path_mainbrand)
-        self.label_brand = Label(self, image=self.image_brand)
+        self.image_brand = tk.PhotoImage(file=parent.path_mainbrand)
+        self.label_brand = tk.Label(self, image=self.image_brand)
         self.label_brand.place(x=412,y=0)
         self.label_brand.lift()
         

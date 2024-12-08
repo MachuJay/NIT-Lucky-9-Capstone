@@ -2,42 +2,42 @@
 #-----------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------
 # Import packages
-from tkinter import *
+import tkinter as tk
 from decimal import Decimal
 from datetime import datetime
 
 # Dali 9 Brand Conventional Header Frame (Customer)
-class frame_header(Frame):
+class frame_header(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         # Brand Intro Banner
-        self.image_banner = PhotoImage(file=parent.path_banner)
-        self.label_banner = Label(self, image=self.image_banner)
+        self.image_banner = tk.PhotoImage(file=parent.path_banner)
+        self.label_banner = tk.Label(self, image=self.image_banner)
         self.label_banner.pack()
-        self.image_brand = PhotoImage(file=parent.path_brand)
-        self.label_brand = Label(self, image=self.image_brand)
+        self.image_brand = tk.PhotoImage(file=parent.path_brand)
+        self.label_brand = tk.Label(self, image=self.image_brand)
         self.label_brand.place(x=35,y=0)
         self.label_brand.lift()
         # Logout Button
-        self.button_logout = Button(self, text = "LOG OUT", fg="white", bg="red", command=lambda: parent.logout())
+        self.button_logout = tk.Button(self, text = "LOG OUT", fg="white", bg="red", command=lambda: parent.logout())
         self.button_logout.place(x=950,y=2)
         # Welcome Text
         if parent.user_type == 1: # Customer
             self.welcometext = "\"Dali-an niyo umorder...\" "
         elif parent.user_type == 0: # Administrator
             self.welcometext = "\"Dali-an mo mag-manage!\" "
-        self.label_welcometext = Label(self, text=self.welcometext, fg="white", bg="#A21F6A", font=("Tahoma", 32, "italic"))
+        self.label_welcometext = tk.Label(self, text=self.welcometext, fg="white", bg="#A21F6A", font=("Tahoma", 32, "italic"))
         self.label_welcometext.place(x=230,y=60)
 
     # Initiate Grocery Cart Feature
     def initiatecart(self):
         # Initialize Grocery Cart Button Image and Cart Items counter
-        self.image_cart = PhotoImage(file=self.parent.path_cart)
-        self.button_cart = Button(self, image=self.image_cart, command=lambda: self.cart_view())
+        self.image_cart = tk.PhotoImage(file=self.parent.path_cart)
+        self.button_cart = tk.Button(self, image=self.image_cart, command=lambda: self.cart_view())
         self.button_cart.place(x=800,y=33)
         self.button_cart.lift()
-        self.label_cartcount = Label(self, text="(XX items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
+        self.label_cartcount = tk.Label(self, text="(XX items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
         self.label_cartcount.place(x=852,y=112)
         # Load active user order
         for self.row in self.parent.rows_orders:
@@ -58,7 +58,7 @@ class frame_header(Frame):
     # Grocery Cart Popup Window
     def cart_view(self):
         # Intiialize Cart Summary popup window
-        self.cart = Toplevel(self.parent)
+        self.cart = tk.Toplevel(self.parent)
         self.cart.focus_set()
         self.cart.grab_set()
         # Set Cart Summary popup window's properties and center position to screen
@@ -73,16 +73,16 @@ class frame_header(Frame):
         self.y_coordinate = int((self.screen_height/2) - (self.window_height/2))
         self.cart.geometry("{}x{}+{}+{}".format(self.window_width, self.window_height, self.x_coordinate, self.y_coordinate))
         # Initialize Canvas
-        self.canvas = Canvas(self.cart)
-        self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
+        self.canvas = tk.Canvas(self.cart)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         # Initialize Scrollbar
-        self.scrollbar = Scrollbar(self.cart, orient=VERTICAL, command=self.canvas.yview)
-        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.scrollbar = tk.Scrollbar(self.cart, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         # Configure Canvas
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.bind('<Configure>', lambda e: self.canvas.config(scrollregion=self.canvas.bbox("all")))
         # Initialize internal Frame into an internal Window within the Canvas
-        self.frame = Frame(self.canvas)
+        self.frame = tk.Frame(self.canvas)
         self.canvas.create_window((0,0), window=self.frame, anchor="nw")
         # Bind mouse wheel event
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
@@ -167,44 +167,44 @@ class frame_header(Frame):
         self.fontstyle = "Arial"
         self.maxcolumns = 4
         # Section 1 (Header)
-        Label(self.frame, text=self.text000, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=0, column=0, columnspan=self.maxcolumns)
-        Label(self.frame, text=self.text00, font=(self.fontstyle, self.fontsize, "bold"), fg="black").grid(row=1, column=0, columnspan=self.maxcolumns)
+        tk.Label(self.frame, text=self.text000, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=0, column=0, columnspan=self.maxcolumns)
+        tk.Label(self.frame, text=self.text00, font=(self.fontstyle, self.fontsize, "bold"), fg="black").grid(row=1, column=0, columnspan=self.maxcolumns)
         # Section 2 (Order Details)
-        Label(self.frame, text=self.text10, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=2, column=0, sticky=W)
-        Label(self.frame, text=self.text11, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=2, column=1, sticky=W, columnspan=2)
-        Label(self.frame, text=self.text12, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=2, column=3, sticky=W)
+        tk.Label(self.frame, text=self.text10, font=(self.fontstyle, self.fontsize, ""), justify=tk.LEFT, fg="black").grid(row=2, column=0, sticky=tk.W)
+        tk.Label(self.frame, text=self.text11, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=2, column=1, sticky=tk.W, columnspan=2)
+        tk.Label(self.frame, text=self.text12, font=(self.fontstyle, self.fontsize, ""), justify=tk.LEFT, fg="black").grid(row=2, column=3, sticky=tk.W)
         # Section 3 (Divider)
-        Label(self.frame, text=self.text20, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=3, column=0, columnspan=self.maxcolumns)
+        tk.Label(self.frame, text=self.text20, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=3, column=0, columnspan=self.maxcolumns)
         # Section 4 (Order Items)
         if self.parent.rows_orderitems == []:
-            Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=4, column=0, columnspan=self.maxcolumns)
+            tk.Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=4, column=0, columnspan=self.maxcolumns)
         else:
-            Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=4, column=0, sticky=W, columnspan=3)
-            Label(self.frame, text=self.text31, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=4, column=3, sticky=E)
+            tk.Label(self.frame, text=self.text30, font=(self.fontstyle, self.fontsize, ""), justify=tk.LEFT, fg="black").grid(row=4, column=0, sticky=tk.W, columnspan=3)
+            tk.Label(self.frame, text=self.text31, font=(self.fontstyle, self.fontsize, ""), justify=tk.RIGHT, fg="black").grid(row=4, column=3, sticky=tk.E)
         # Section 5 (Divider)
-        Label(self.frame, text=self.text40, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=5, column=0, columnspan=self.maxcolumns)
+        tk.Label(self.frame, text=self.text40, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=5, column=0, columnspan=self.maxcolumns)
         # Section 6 (Quantity and Price Totals)
-        Label(self.frame, text=self.text50, font=(self.fontstyle, self.fontsize, "bold"), justify=LEFT, fg="black").grid(row=6, column=0)
-        Label(self.frame, text=self.text51, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=6, column=1, sticky=W)
-        Label(self.frame, text=self.text52, font=(self.fontstyle, self.fontsize, "bold"), justify=RIGHT, fg="black").grid(row=6, column=2, sticky=E, columnspan=2)
+        tk.Label(self.frame, text=self.text50, font=(self.fontstyle, self.fontsize, "bold"), justify=tk.LEFT, fg="black").grid(row=6, column=0)
+        tk.Label(self.frame, text=self.text51, font=(self.fontstyle, self.fontsize, ""), justify=tk.LEFT, fg="black").grid(row=6, column=1, sticky=tk.W)
+        tk.Label(self.frame, text=self.text52, font=(self.fontstyle, self.fontsize, "bold"), justify=tk.RIGHT, fg="black").grid(row=6, column=2, sticky=tk.E, columnspan=2)
         # Section 7 (Subdivider)
-        Label(self.frame, text=self.text60, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=7, column=0, stick=E, columnspan=self.maxcolumns)
+        tk.Label(self.frame, text=self.text60, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=7, column=0, stick=tk.E, columnspan=self.maxcolumns)
         # Section 8 (Amount Due and Cashk
-        Label(self.frame, text=self.text70, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=8, column=0, sticky=E, columnspan=2)
-        Label(self.frame, text=self.text71, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=8, column=2, sticky=E, columnspan=2)
+        tk.Label(self.frame, text=self.text70, font=(self.fontstyle, self.fontsize, ""), justify=tk.RIGHT, fg="black").grid(row=8, column=0, sticky=tk.E, columnspan=2)
+        tk.Label(self.frame, text=self.text71, font=(self.fontstyle, self.fontsize, ""), justify=tk.RIGHT, fg="black").grid(row=8, column=2, sticky=tk.E, columnspan=2)
         # Section 9 (Subdivider)
-        Label(self.frame, text=self.text80, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=9, column=0, stick=E, columnspan=self.maxcolumns)
+        tk.Label(self.frame, text=self.text80, font=(self.fontstyle, self.fontsize, ""), fg="black").grid(row=9, column=0, stick=tk.E, columnspan=self.maxcolumns)
         # Section 10 (Change)
-        Label(self.frame, text=self.text90, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=10, column=0, sticky=E, columnspan=2)
-        Label(self.frame, text=self.text91, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=10, column=2, sticky=E, columnspan=2)
+        tk.Label(self.frame, text=self.text90, font=(self.fontstyle, self.fontsize, ""), justify=tk.RIGHT, fg="black").grid(row=10, column=0, sticky=tk.E, columnspan=2)
+        tk.Label(self.frame, text=self.text91, font=(self.fontstyle, self.fontsize, ""), justify=tk.RIGHT, fg="black").grid(row=10, column=2, sticky=tk.E, columnspan=2)
         # Section 11 (VAT)
-        Label(self.frame, text=self.text100, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=11, column=0, sticky=W)
-        Label(self.frame, text=self.text101, font=(self.fontstyle, self.fontsize, ""), justify=LEFT, fg="black").grid(row=11, column=1, sticky=W)
-        Label(self.frame, text=self.text102, font=(self.fontstyle, self.fontsize, ""), justify=RIGHT, fg="black").grid(row=11, column=2, sticky=W, columnspan=2)
+        tk.Label(self.frame, text=self.text100, font=(self.fontstyle, self.fontsize, ""), justify=tk.LEFT, fg="black").grid(row=11, column=0, sticky=tk.W)
+        tk.Label(self.frame, text=self.text101, font=(self.fontstyle, self.fontsize, ""), justify=tk.LEFT, fg="black").grid(row=11, column=1, sticky=tk.W)
+        tk.Label(self.frame, text=self.text102, font=(self.fontstyle, self.fontsize, ""), justify=tk.RIGHT, fg="black").grid(row=11, column=2, sticky=tk.W, columnspan=2)
         # Section 12 (Total)
-        Label(self.frame, text=self.text110, font=(self.fontstyle, self.fontsize, "bold"), justify=LEFT, fg="black").grid(row=12, column=0, sticky=W)
-        Label(self.frame, text=self.text111, font=(self.fontstyle, self.fontsize, "bold"), justify=LEFT, fg="black").grid(row=12, column=1, sticky=W)
-        Label(self.frame, text=self.text112, font=(self.fontstyle, self.fontsize, "bold"), justify=RIGHT, fg="black").grid(row=12, column=2, sticky=W, columnspan=2)
+        tk.Label(self.frame, text=self.text110, font=(self.fontstyle, self.fontsize, "bold"), justify=tk.LEFT, fg="black").grid(row=12, column=0, sticky=tk.W)
+        tk.Label(self.frame, text=self.text111, font=(self.fontstyle, self.fontsize, "bold"), justify=tk.LEFT, fg="black").grid(row=12, column=1, sticky=tk.W)
+        tk.Label(self.frame, text=self.text112, font=(self.fontstyle, self.fontsize, "bold"), justify=tk.RIGHT, fg="black").grid(row=12, column=2, sticky=tk.W, columnspan=2)
         self.parent.update_orderitems()
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):

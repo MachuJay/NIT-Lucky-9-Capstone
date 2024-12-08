@@ -2,11 +2,11 @@
 #-----------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------
 # Import packages
-from tkinter import *
+import tkinter as tk
 from mysql.connector import Error
 
 # Administrator Frame: Home
-class frame_admin_home(Frame):
+class frame_admin_home(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -20,16 +20,16 @@ class frame_admin_home(Frame):
     # Inventory List View
     def canvastime(self, parent):
         # Initialize Canvas
-        self.canvas = Canvas(parent)
-        self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
+        self.canvas = tk.Canvas(parent)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
         # Initialize Scrollbar
-        self.scrollbar = Scrollbar(parent, orient=VERTICAL, command=self.canvas.yview)
-        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.scrollbar = tk.Scrollbar(parent, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         # Configure Canvas
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.bind('<Configure>', lambda e: self.canvas.config(scrollregion=self.canvas.bbox("all")))
         # Initialize internal Frame into an internal Window within the Canvas
-        self.frame = Frame(self.canvas)
+        self.frame = tk.Frame(self.canvas)
         self.canvas.create_window((0,0), window=self.frame, anchor="nw")
         # Bind mouse wheel event
         self.canvas.bind("<MouseWheel>", self.on_mousewheel)
@@ -44,21 +44,21 @@ class frame_admin_home(Frame):
         # Close Database Connection
         parent.db_disconnect("announce")
         # Initialize Grocery inventory rows header titles
-        Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
-        Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
-        Label(self.frame, text="PRICE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=2, pady=10, padx=0)
-        Label(self.frame, text="").grid(row=0, column=3, pady=10, padx=10)
-        Label(self.frame, text="CATEGORY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=4, pady=10, padx=0)
+        tk.Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
+        tk.Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
+        tk.Label(self.frame, text="PRICE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=2, pady=10, padx=0)
+        tk.Label(self.frame, text="").grid(row=0, column=3, pady=10, padx=10)
+        tk.Label(self.frame, text="CATEGORY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=4, pady=10, padx=0)
         # Display retrieved "inventory" table rows
         self.rowcounter = 0
         for self.row in parent.rows_items:
             self.rowcounter += 1
             # name
-            Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=0, pady=0, padx=0)
+            tk.Label(self.frame, text=self.row[1], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=0, pady=0, padx=0)
             # quantity
-            Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
+            tk.Label(self.frame, text=self.row[2], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=1, pady=0, padx=0)
             # price
-            self.label_price = Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, ""))
+            self.label_price = tk.Label(self.frame, text=f"Php {self.row[3]}", font=("Tahoma", 16, ""))
             self.label_price.grid(row=self.rowcounter, column=2, pady=0, padx=0)
             parent.adminlist_prices[self.rowcounter-1] = self.label_price
             # adjust price buttons
@@ -70,9 +70,9 @@ class frame_admin_home(Frame):
             else:
                 self.fg = "white"
                 self.bg = "black"
-            Button(self.frame, text="Adjust Price", font=("Tahoma", 12, "bold"), fg=self.fg, bg=self.bg, command=lambda id=self.row[0]: self.adjustprice(id)).grid(row=self.rowcounter, column=3, pady=0, padx=0)
+            tk.Button(self.frame, text="Adjust Price", font=("Tahoma", 12, "bold"), fg=self.fg, bg=self.bg, command=lambda id=self.row[0]: self.adjustprice(id)).grid(row=self.rowcounter, column=3, pady=0, padx=0)
             # category
-            Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
+            tk.Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
     # Mouse Scroll Wheel event
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
@@ -82,7 +82,7 @@ class frame_admin_home(Frame):
         widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
     def adjustprice(self, id):
         # Intiialize Cart Summary popup window
-        self.cart = Toplevel(self.parent)
+        self.cart = tk.Toplevel(self.parent)
         self.cart.focus_set()
         self.cart.grab_set()
         # Set Cart Summary popup window's properties and center position to screen
@@ -101,16 +101,16 @@ class frame_admin_home(Frame):
         for self.row_item in self.parent.rows_items:
             if (self.row_item[0] == id):
                 self.row_adjust = self.row_item
-        Label(self.cart, text="-----------ADJUST ITEM PRICE-----------", font=("Segoe UI", 16, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=0, padx=0, columnspan=2)
-        Label(self.cart, text="NAME", font=("Segoe UI", 16, "bold"), fg="white", bg="#A21F6A").grid(row=1, column=0, pady=3, padx=0, sticky=W)
-        Label(self.cart, text=self.row_adjust[1], font=("Segoe UI", 18, "bold"), fg="black").grid(row=1, column=1, pady=3, padx=0, sticky=W)
-        Label(self.cart, text="PRICE", font=("Segoe UI", 16, "bold"), fg="white", bg="#A21F6A").grid(row=2, column=0, pady=3, padx=0, sticky=W)
-        Label(self.cart, text=f"Php {self.row_adjust[3]}", font=("Segoe UI", 16, "bold"), fg="black").grid(row=2, column=1, pady=3, padx=0, sticky=W)
-        Label(self.cart, text="New Price:", font=("Segoe UI", 16, "bold"), fg="black").grid(row=3, column=0, pady=3, padx=0, sticky=W)
-        self.input_price = Entry(self.cart, font=("Segoe UI", 16, "bold"), fg="black", width=18)
-        self.input_price.grid(row=3, column=1, pady=3, padx=0, sticky=W)
+        tk.Label(self.cart, text="-----------ADJUST ITEM PRICE-----------", font=("Segoe UI", 16, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=0, padx=0, columnspan=2)
+        tk.Label(self.cart, text="NAME", font=("Segoe UI", 16, "bold"), fg="white", bg="#A21F6A").grid(row=1, column=0, pady=3, padx=0, sticky=tk.W)
+        tk.Label(self.cart, text=self.row_adjust[1], font=("Segoe UI", 18, "bold"), fg="black").grid(row=1, column=1, pady=3, padx=0, sticky=tk.W)
+        tk.Label(self.cart, text="PRICE", font=("Segoe UI", 16, "bold"), fg="white", bg="#A21F6A").grid(row=2, column=0, pady=3, padx=0, sticky=tk.W)
+        tk.Label(self.cart, text=f"Php {self.row_adjust[3]}", font=("Segoe UI", 16, "bold"), fg="black").grid(row=2, column=1, pady=3, padx=0, sticky=tk.W)
+        tk.Label(self.cart, text="New Price:", font=("Segoe UI", 16, "bold"), fg="black").grid(row=3, column=0, pady=3, padx=0, sticky=tk.W)
+        self.input_price = tk.Entry(self.cart, font=("Segoe UI", 16, "bold"), fg="black", width=18)
+        self.input_price.grid(row=3, column=1, pady=3, padx=0, sticky=tk.W)
         # confirm button
-        Button(self.cart, text="CONFIRM", font=("Tahoma", 16, ""), fg="#A21F6A", bg="black", command=lambda id=id, name=self.row_adjust[1], entryfield=self.input_price: self.price_update(id, name, entryfield)).grid(row=4, column=0, pady=8, padx=0, columnspan=2)
+        tk.Button(self.cart, text="CONFIRM", font=("Tahoma", 16, ""), fg="#A21F6A", bg="black", command=lambda id=id, name=self.row_adjust[1], entryfield=self.input_price: self.price_update(id, name, entryfield)).grid(row=4, column=0, pady=8, padx=0, columnspan=2)
     def price_update(self, id, name, entryfield):
         self.price = entryfield.get()
         # Check if input is valid
