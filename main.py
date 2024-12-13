@@ -89,7 +89,7 @@ class ShoppingCartSystem(tk.Tk):
         self.row_item = self.cursor.fetchone()
         self.db_disconnect
         # Assign user values
-        self.user_id = self.row_item[0]
+        self.user_id = self.row_item[0]test error
         self.user_type = self.row_item[3]
         self.user_name = self.row_item[4]
         print(f"Successfully Logged in user \'{self.user_name}\' with user id \'{self.user_id}\'")
