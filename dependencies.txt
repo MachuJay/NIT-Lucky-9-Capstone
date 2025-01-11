@@ -6,6 +6,9 @@ pip install nuitka
 
 Python MySQL Connector (For database connections):
 pip install mysql-connector-python
+
+Transformers (For AI models):
+pip install transformers
 -----------------------------------------------------
 -----------------------------------------------------
 optionals:

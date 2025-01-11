@@ -177,8 +177,11 @@ class ShoppingCartSystem(tk.Tk):
 
     # Logout User Account
     def logout(self):
-        python = sys.executable
-        os.execl(python, python, * sys.argv)
+        #python = sys.executable
+        #os.execl(python, python, * sys.argv)
+        self.destroy()
+        self = ShoppingCartSystem()
+        self.mainloop()
         
 #-----------------------------------------------------------------------------------------------------------------
 #--- HEADER FRAMES -----------------------------------------------------------------------------------------------

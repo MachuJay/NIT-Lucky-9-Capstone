@@ -18,7 +18,6 @@ class frame_login(tk.Frame):
         self.temp_mana = tk.Button(self, text = "Administrator", font=("Tahoma", 30, "bold"), fg="white", bg="black", command=lambda: parent.user_authorization(0)) #pass user id in param
         self.temp_mana.pack(pady=20)
         # verify user's username and password then pass value to user_authorization()
-        #placeholder
 
 # Registration Frame
 # placeholder
