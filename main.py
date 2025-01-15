@@ -87,7 +87,7 @@ class ShoppingCartSystem(tk.Tk):
         self.cursor = self.connection.cursor()
         self.cursor.execute(f"SELECT * FROM users WHERE id = {id}")
         self.row_item = self.cursor.fetchone()
-        self.db_disconnect
+        self.db_disconnect()
         # Assign user values
         self.user_id = self.row_item[0]
         self.user_type = self.row_item[3]

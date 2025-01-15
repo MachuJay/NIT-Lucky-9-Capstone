@@ -26,9 +26,9 @@ class frame_header(tk.Frame):
         self.button_logout.place(x=950,y=2)
         # Welcome Text
         if parent.user_type == 1: # Customer
-            self.welcometext = "\"Dali-an niyo umorder...\" "
+            self.welcometext = f"Welcome, user: {parent.user_name} "
         elif parent.user_type == 0: # Administrator
-            self.welcometext = "\"Dali-an mo mag-manage!\" "
+            self.welcometext = f"Admin: {parent.user_name} "
         self.label_welcometext = tk.Label(self, text=self.welcometext, fg="white", bg="#A21F6A", font=("Tahoma", 32, "italic"))
         self.label_welcometext.place(x=230,y=60)
 
