@@ -54,6 +54,15 @@ class frame_header(tk.Frame):
             self.cursor.execute(self.query, (self.parent.user_id, datetime.now()))
             self.parent.connection.commit()
             print("Created new user Order.")
+            # Access Database: Retrieve updated "orders" table rows data
+            self.cursor.execute("SELECT * FROM orders")
+            self.parent.rows_orders = self.cursor.fetchall()
+            # Load active user order
+            for self.row in self.parent.rows_orders:
+                # Load unfinished Order
+                if (self.row[1] == self.parent.user_id and self.row[4] != True):
+                    self.parent.row_order = self.row
+                    print(f"    Retrieved order number \'{self.parent.row_order[0]}\' for user \'{self.parent.user_id}\'.")
         # Update Grocery Cart items count
         self.parent.update_orderitems()
 
