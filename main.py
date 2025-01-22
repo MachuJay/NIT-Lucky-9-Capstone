@@ -175,10 +175,12 @@ class ShoppingCartSystem(tk.Tk):
             self.row_order = self.cursor.fetchone()
             self.db_disconnect()
 
-    # Logout User Account
+    # Logout User Account (Restart Program)
     def logout(self):
-        python = sys.executable
-        os.execl(python, python, * sys.argv)
+        self.destroy()
+        ShoppingCartSystem().mainloop()
+        #python = sys.executable
+        #os.execl(python, python, * sys.argv)
         
 #-----------------------------------------------------------------------------------------------------------------
 #--- HEADER FRAMES -----------------------------------------------------------------------------------------------
