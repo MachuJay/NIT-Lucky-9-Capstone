@@ -4,6 +4,20 @@ sayonara = input("Enter any key to exit...")
 
 ''' --------------------------------------------------------------------------------------------------- '''
 # ---------------------------------------------------------------------------------------------------
+'''Forest Breeze Color palette:
+https://colorkit.co/palette/f1ddbf-525e75-78938a-92ba92/
+> cream:
+#f1ddbf
+> blue:
+#525e75
+> dark green:
+#78938a
+> light green:
+#92ba92
+> generic black (Iron):
+#322d31
+'''
+# ---------------------------------------------------------------------------------------------------
 '''Nuitka Building
 nuitka --standalone --output-dir=build --include-data-dir=resources=resources --windows-icon-from-ico=resources/logo_icon.ico --enable-plugin=tk-inter --include-package=mysql.connector --include-package=login --include-package=user_custo --include-package=user_custo_header --include-package=user_admin main.py
 

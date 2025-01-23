@@ -41,7 +41,7 @@ class ShoppingCartSystem(tk.Tk):
         self.path_cart = self.resource_path("resources/logo_cart.png")
 
         # Initialize window properties
-        self.title("Dali 9 Shopping Cart System")
+        self.title("Ninecharm Shopping Cart System")
         self.iconbitmap(self.path_icon)
         self.resizable(False, False)
         self.attributes('-topmost', True)
@@ -184,7 +184,7 @@ class ShoppingCartSystem(tk.Tk):
         
 #-----------------------------------------------------------------------------------------------------------------
 #--- HEADER FRAMES -----------------------------------------------------------------------------------------------
-# Dali 9 Brand Header Frame
+# Ninecharm Brand Header Frame
 class frame_mainheader(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)

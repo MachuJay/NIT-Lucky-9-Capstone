@@ -6,7 +6,7 @@ import tkinter as tk
 from decimal import Decimal
 from datetime import datetime
 
-# Dali 9 Brand Conventional Header Frame (Customer)
+# Ninecharm Brand Conventional Header Frame (Customer)
 class frame_header(tk.Frame):
 
     def __init__(self, parent):
@@ -22,14 +22,14 @@ class frame_header(tk.Frame):
         self.label_brand.place(x=35,y=0)
         self.label_brand.lift()
         # Logout Button
-        self.button_logout = tk.Button(self, text = "LOG OUT", fg="white", bg="red", command=lambda: parent.logout())
+        self.button_logout = tk.Button(self, text = "LOG OUT", fg="white", bg="#ba0000", command=lambda: parent.logout())
         self.button_logout.place(x=950,y=2)
         # Welcome Text
         if parent.user_type == 1: # Customer
-            self.welcometext = f"Welcome, user: {parent.user_name} "
+            self.welcometext = f"Welcome, {parent.user_name} "
         elif parent.user_type == 0: # Administrator
             self.welcometext = f"Admin: {parent.user_name} "
-        self.label_welcometext = tk.Label(self, text=self.welcometext, fg="white", bg="#A21F6A", font=("Tahoma", 32, "italic"))
+        self.label_welcometext = tk.Label(self, text=self.welcometext, fg="white", bg="#78938a", font=("Tahoma", 32, "italic"))
         self.label_welcometext.place(x=230,y=60)
 
     # Initiate Grocery Cart Feature
@@ -39,7 +39,7 @@ class frame_header(tk.Frame):
         self.button_cart = tk.Button(self, image=self.image_cart, command=lambda: self.cart_view())
         self.button_cart.place(x=800,y=33)
         self.button_cart.lift()
-        self.label_cartcount = tk.Label(self, text="(XX items)", fg="white", bg="#A21F6A", justify="center", font=("Tahoma", 16, ""))
+        self.label_cartcount = tk.Label(self, text="(XX items)", fg="white", bg="#78938a", justify="center", font=("Tahoma", 16, ""))
         self.label_cartcount.place(x=852,y=112)
         # Load active user order
         for self.row in self.parent.rows_orders:
@@ -102,7 +102,7 @@ class frame_header(tk.Frame):
 
         # Define Receipt Grid text values
         self.text000 = ("\n"
-            "DALI 9: LUCKY 9 (PBSP INC.)\n"
+            "NINECHARM: LUCKY 9 (PBSP INC.)\n"
             "ACCENTURE INC., Q.C. LGU, EDULYNX CORP.\n"
             "METRO MANILA, NCR, MANILA, PHILIPPINES\n"
             "VAT REG TIN: 0100-034-694-001\n"
