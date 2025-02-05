@@ -88,51 +88,88 @@ class frame_header(tk.Frame):
         self.chatboxrow = 0
         self.textbox_prompt = tk.Text(self.convo_input, height=10, width=33, font=("Arial", 14, ""), wrap="word")
         self.textbox_prompt.grid(row=0, column=0, rowspan=2)
-        self.button_update = tk.Button(self.convo_input, text="Update\nDatabase", font=("Arial", 14, "bold"), bg="#78938a", command=lambda: self.sendmessage(0))
+        self.button_update = tk.Button(self.convo_input, text="Update\nDatabase", font=("Arial", 14, "bold"), bg="#78938a", command=lambda: self.sendmessage(2))
         self.button_update.grid(row=0, column=1, sticky=tk.NW)
-        self.button_prompt = tk.Button(self.convo_input, height=4, width=7, text="Send", font=("Arial", 14, "bold"), bg="#92ba92", command=lambda: self.sendmessage(1))
+        self.button_prompt = tk.Button(self.convo_input, height=4, width=7, text="Send", font=("Arial", 14, "bold"), bg="#92ba92", command=lambda: self.sendmessage(0))
         self.button_prompt.grid(row=1, column=1, sticky=tk.SE)
 
-        '''
         # Set up API key
         genai.configure(api_key="AIzaSyCy_5IaKck7-MrnJRYLjyV3n2FeCJ9FDGs")
         # Initialize language model
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(f"Explain how AI works and give a shoutout to my name: {self.parent.user_name}")
-        print(response.text)
-        '''
+        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        # Send out initial session prompt
+        prompt = (f"My name is {self.parent.user_name}. If you remember me, only respond with a message welcoming me for logging back to the NineCharm application.")
+        print(f"Sending out prompt: '{prompt}'")
+        # Receive Gemini AI Response
+        response = self.model.generate_content(prompt)
+        print(f"Retrieved response: '{response.text}'")
+        # Display Gemini AI Response
+        MinayReply = response.text
+        self.sendmessage(1, MinayReply)
 
     # Display User/AI Chatbox Message++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    def sendmessage(self, mode):
-        self.userprompt = self.textbox_prompt.get("1.0", tk.END).strip()
-        if self.userprompt != "":
-            self.fontsize = 14
-            self.fontstyle = "Arial"
-            self.chat = tk.Label(self.frame_Minay, text=self.userprompt, font=(self.fontstyle, self.fontsize, ""), fg="#f1ddbf", bg="black", wraplength=226, justify=tk.LEFT)
-            if mode == 0:# Minay response
-                # Retrieve Response
+    def sendmessage(self, mode, prompt=""):
+        # Initialize Widget and Conditional Values
+        isMessageAdded = False
+        isExpectingAIResponse = False
+        self.fontsize = 14
+        self.fontstyle = "Arial"
+        self.chat = tk.Label(self.frame_Minay, font=(self.fontstyle, self.fontsize, ""), fg="#f1ddbf", bg="black", wraplength=226, justify=tk.LEFT)
+        # Retrieve User Input
+        self.userinput = self.textbox_prompt.get("1.0", tk.END).strip()
+        '''
+        mode == 0: Display User Chat
+        mode == 1: Display AI Response to User
+        mode == 2: Display AI Response to Database Data Prompt
+        '''
+        # Minay response
+        if mode == 1 or mode == 2:
+            self.response = ""
+            if mode == 1: # User Input Prompt
+                self.prompt = prompt
+            elif mode == 2: # Database Prompt
+                # Retrieve Database Data 
                 #
-                #
-                # Add Message Label Widget to Frame
-                self.chat.config(fg="#322d31", bg="white")
-                self.chat.grid(row=self.chatboxrow, column=0, sticky=tk.W)
-                tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=2, columnspan=3, sticky=tk.E)
-                self.sender = "AI Language Model 'Gemini'"
-            else: # User prompt
-                # Retrieve User Input
-                #
-                #
-                # Add Message Label Widget to Frame
-                tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=0, columnspan=2, sticky=tk.W)
-                self.chat.config(fg="#322d31", bg="#92ba92")
-                self.chat.grid(row=self.chatboxrow, column=2, sticky=tk.E)
-                tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=3, sticky=tk.E)
-                self.sender = f"User '{self.parent.user_name}'"
-            # Update Chatbox Stuff
-            tk.Label(self.frame_Minay, text="      ", bg="#525e75").grid(row=self.chatboxrow+1, column=0, columnspan=3, sticky=tk.W)
+                self.prompt = "Database Prompt"
+            # Send out prompt
+            self.response = self.model.generate_content(self.prompt)
+            print(f"Sending out prompt: '{prompt}'")
+            # Retrieve Response
+            print(f"Retrieved response:\n'{self.response.text}'")
+            # Alter Label Text
+            self.chat.config(text=self.response.text)
+            # Alter Label Colors
+            self.chat.config(fg="#322d31", bg="white")
+            # Add Message Label Widget to Frame
+            self.chat.grid(row=self.chatboxrow, column=0, sticky=tk.W)
+            tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=2, columnspan=3, sticky=tk.E) # filler
+            # Display Stuff
+            self.sender = "AI Language Model: 'Gemini'"
+            isMessageAdded = True
+        # User prompt
+        elif mode == 0 and self.userinput != "":
+            # Alter Label Text
+            self.chat.config(text=self.userinput)
+            # Alter Label Colors
+            self.chat.config(fg="#322d31", bg="#92ba92")
+            # Add Message Label Widget to Frame and Clear Input Box Text
+            tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=0, columnspan=2, sticky=tk.W) # filler
+            self.chat.grid(row=self.chatboxrow, column=2, sticky=tk.E)
+            tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=3, sticky=tk.E) # filler
             self.textbox_prompt.delete("1.0", tk.END)
+            # Display Stuff
+            self.sender = f"User: '{self.parent.user_name}'"
+            isMessageAdded = True
+            # Signal to Send Prompt to AI
+            isExpectingAIResponse = True
+        # Update Chatbox Stuff
+        if isMessageAdded:
+            tk.Label(self.frame_Minay, text="      ", bg="#525e75").grid(row=self.chatboxrow+1, column=0, columnspan=3, sticky=tk.W)
             self.chatboxrow += 2
-            print(f"    Displayed chat message number {self.chatboxrow} from {self.sender}.")
+            print(f"    Displayed chat message number {int(self.chatboxrow/2)} from {self.sender}.")
+            # Initiate AI Response
+            if isExpectingAIResponse:
+                self.sendmessage(1, self.userinput)
 
     # Initiate Grocery Cart Feature
     def initiatecart(self):
