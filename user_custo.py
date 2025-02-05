@@ -41,20 +41,20 @@ class frame_cust_home(tk.Frame):
         print(f"    Retrieved \'{len(parent.rows_orders)}\' rows from \"orders\" table.")
         # Initiate Cart Button
         parent.frame_main.initiatecart()
+        # Initiate Mimay AI Assistant
+        self.parent.frame_main.initiateMinay()
         # Close Database Connection
         parent.db_disconnect("announce")
 
         # Initialize Grocery inventory rows header titles
-        self.color_bg_headertitles = "#92ba92"
-        self.color_fg_headertitles = "#322d31"
-        tk.Label(self.frame, text="IMAGE", font=("Segoe UI", 10, "bold"), fg=self.color_fg_headertitles, bg=self.color_bg_headertitles).grid(row=0, column=0, pady=10, padx=0)
-        tk.Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg=self.color_fg_headertitles, bg=self.color_bg_headertitles).grid(row=0, column=1, pady=10, padx=0)
-        tk.Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg=self.color_fg_headertitles, bg=self.color_bg_headertitles).grid(row=0, column=2, pady=10, padx=0)
-        tk.Label(self.frame, text="PRICE", font=("Segoe UI", 10, "bold"), fg=self.color_fg_headertitles, bg=self.color_bg_headertitles).grid(row=0, column=3, pady=10, padx=0)
-        tk.Label(self.frame, text="CATEGORY", font=("Segoe UI", 10, "bold"), fg=self.color_fg_headertitles, bg=self.color_bg_headertitles).grid(row=0, column=4, pady=10, padx=0)
+        tk.Label(self.frame, text="IMAGE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=0, pady=10, padx=0)
+        tk.Label(self.frame, text="NAME", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=1, pady=10, padx=0)
+        tk.Label(self.frame, text="QUANTITY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=2, pady=10, padx=0)
+        tk.Label(self.frame, text="PRICE", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=3, pady=10, padx=0)
+        tk.Label(self.frame, text="CATEGORY", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=4, pady=10, padx=0)
         tk.Label(self.frame, text="").grid(row=0, column=5, pady=10, padx=10)
         tk.Label(self.frame, text="").grid(row=0, column=6, pady=10, padx=10)
-        tk.Label(self.frame, text="ORDERED", font=("Segoe UI", 10, "bold"), fg=self.color_fg_headertitles, bg=self.color_bg_headertitles).grid(row=0, column=7, pady=10, padx=0)
+        tk.Label(self.frame, text="ORDERED", font=("Segoe UI", 10, "bold"), fg="white", bg="black").grid(row=0, column=7, pady=10, padx=0)
 
         # Display retrieved "inventory" table rows
         self.item_placeholder = tk.PhotoImage(file=parent.resource_path("resources/placeholder.png"))
@@ -79,8 +79,8 @@ class frame_cust_home(tk.Frame):
             # category
             tk.Label(self.frame, text=self.row[4], font=("Tahoma", 16, "")).grid(row=self.rowcounter, column=4, pady=0, padx=23)
             # order buttons
-            tk.Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="#92ba92", command=lambda item=self.row[0]: self.item_add(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
-            tk.Button(self.frame, text="-", font=("Tahoma", 12, "bold"), fg="white", bg="#ba0000", command=lambda item=self.row[0]: self.item_remove(item)).grid(row=self.rowcounter, column=6, pady=0, padx=5)
+            tk.Button(self.frame, text="Order", font=("Tahoma", 12, "bold"), fg="white", bg="green", command=lambda item=self.row[0]: self.item_add(item)).grid(row=self.rowcounter, column=5, pady=0, padx=0)
+            tk.Button(self.frame, text="-", font=("Tahoma", 12, "bold"), fg="white", bg="red", command=lambda item=self.row[0]: self.item_remove(item)).grid(row=self.rowcounter, column=6, pady=0, padx=5)
             # order counter labels
             self.label_counter = tk.Label(self.frame, text="- - -", font=("Tahoma", 16, ""))
             self.label_counter.grid(row=self.rowcounter, column=7, pady=0, padx=0)

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 13, 2024 at 06:24 AM
+-- Generation Time: Feb 05, 2025 at 01:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -110,22 +110,15 @@ CREATE TABLE `orderitems` (
 --
 
 INSERT INTO `orderitems` (`id_order`, `id_item`, `quantity`) VALUES
-(1, 1, 1),
-(7, 45, 2),
-(7, 4, 4),
-(7, 6, 1),
-(7, 8, 2),
-(7, 3, 1),
-(7, 47, 1),
-(7, 2, 10),
-(7, 12, 3),
-(7, 48, 1),
-(7, 43, 5),
-(9, 2, 5),
-(9, 5, 6),
-(9, 7, 5),
-(9, 3, 6),
-(9, 8, 2);
+(7, 2, 5),
+(7, 4, 5),
+(7, 5, 3),
+(7, 11, 3),
+(7, 22, 4),
+(10, 2, 2),
+(10, 3, 2),
+(10, 5, 3),
+(10, 4, 1);
 
 -- --------------------------------------------------------
 
@@ -148,8 +141,10 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id_order`, `id_user`, `datetime_initiate`, `datetime_completed`, `iscompleted`, `total`, `cash`) VALUES
-(7, 1, '2024-11-30 21:01:51', '0000-00-00 00:00:00', 0, 4360.00, 0.00),
-(9, 1, '2024-12-05 13:43:04', '0000-00-00 00:00:00', 0, 3220.00, 0.00);
+(7, 1, '2024-11-30 21:01:51', '0000-00-00 00:00:00', 0, 2370.00, 0.00),
+(10, 2, '2025-02-03 18:43:55', '0000-00-00 00:00:00', 0, 1140.00, 0.00),
+(11, 3, '2025-02-03 18:45:18', '0000-00-00 00:00:00', 0, 0.00, 0.00),
+(12, 4, '2025-02-04 20:04:05', '0000-00-00 00:00:00', 0, 0.00, 0.00);
 
 -- --------------------------------------------------------
 
@@ -170,8 +165,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `type`, `name`) VALUES
-(0, 'admin', '21232f297a57a5a743894a0e4a801fc3', 0, 'Administrator'),
-(1, 'customer', '91ec1f9324753048c0096d036a694f86', 1, 'Customer');
+(1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 0, 'Administrator'),
+(2, 'customer', '91ec1f9324753048c0096d036a694f86', 1, 'Customer'),
+(3, 'test01', '0e698a8ffc1a0af622c7b4db3cb750cc', 1, 'Test User 01'),
+(4, '1', 'c4ca4238a0b923820dcc509a6f75849b', 1, 'quick test account');
 
 --
 -- Indexes for dumped tables
@@ -209,7 +206,13 @@ ALTER TABLE `inventory`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id_order` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_order` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

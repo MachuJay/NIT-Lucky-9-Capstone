@@ -3,6 +3,7 @@
 #-----------------------------------------------------------------------------------------------------------------
 # Import packages
 import tkinter as tk
+import google.generativeai as genai
 from decimal import Decimal
 from datetime import datetime
 
@@ -31,6 +32,107 @@ class frame_header(tk.Frame):
             self.welcometext = f"Admin: {parent.user_name} "
         self.label_welcometext = tk.Label(self, text=self.welcometext, fg="white", bg="#78938a", font=("Tahoma", 32, "italic"))
         self.label_welcometext.place(x=230,y=60)
+
+    # Initiate Google Gemini Language Model Chat Box
+    def initiateMinay(self):
+        # Adjust main window position
+        self.parent.x_coordinate -= 200
+        self.parent.geometry("{}x{}+{}+{}".format(self.parent.window_width, self.parent.window_height, self.parent.x_coordinate, self.parent.y_coordinate))
+        # Initialize Minay Chat Window
+        self.convo = tk.Toplevel(self.parent)
+        # Set Minay chat window's properties and position beside app window
+        self.convo.title(f"Minay - {self.parent.user_name}'s Personal Assistant")
+        self.convo.iconbitmap(self.parent.path_icon)
+        self.convo.resizable(False, False)
+        self.window_height = 500
+        self.window_width = 480
+        self.screen_width = self.winfo_screenwidth()
+        self.screen_height = self.winfo_screenheight()
+        self.x_coordinate = self.parent.x_coordinate + self.parent.window_width
+        self.y_coordinate = self.parent.y_coordinate
+        self.convo.geometry("{}x{}+{}+{}".format(self.window_width, self.window_height, self.x_coordinate, self.y_coordinate))
+
+        # Initialize Canvas
+        self.canvas_Minay = tk.Canvas(self.convo)
+        self.canvas_Minay.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+        # Initialize Scrollbar
+        self.scrollbar = tk.Scrollbar(self.convo, orient=tk.VERTICAL, command=self.canvas_Minay.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Configure Canvas
+        self.canvas_Minay.configure(yscrollcommand=self.scrollbar.set, bg="#525e75")
+        # Initialize internal Frame into an internal Window within the Canvas
+        self.frame_Minay = tk.Frame(self.canvas_Minay, bg="#525e75")
+        self.canvas_Minay.create_window((0,0), window=self.frame_Minay, anchor="nw")
+        # Function for dynamic scroll region updating
+        def update_scroll_region(event=None, scroll_to_bottom = True):
+            # Prevent widgets width overflow
+            self.canvas_Minay.configure(scrollregion=self.canvas_Minay.bbox("all"))
+            if scroll_to_bottom:
+                self.canvas_Minay.yview_moveto(1)
+        # Adjust canvas when widgets resize
+        self.frame_Minay.bind("<Configure>", update_scroll_region)
+        # Bind mouse wheel event
+        self.canvas_Minay.bind_all("<MouseWheel>", self.on_mousewheel_Minay)
+        self.canvas_Minay.bind_all("<MouseWheel>", self.set_mousewheel_Minay(self.canvas_Minay, self.on_mousewheel_Minay))
+
+        # Initialize User Prompt Window
+        self.convo_input = tk.Toplevel(self.parent, background="#525e75")
+        # Set user prompt window's properties and position below Monay Chat Window
+        self.convo_input.title("Input Prompt Here")
+        self.convo_input.iconbitmap(self.parent.path_icon)
+        self.convo_input.resizable(False, False)
+        self.offset = 30
+        self.convo_input.geometry("{}x{}+{}+{}".format(self.window_width, self.parent.window_height-self.window_height-self.offset, self.x_coordinate, self.y_coordinate+self.window_height+self.offset))
+
+        # Initialize User Prompt Window Widgets
+        self.chatboxrow = 0
+        self.textbox_prompt = tk.Text(self.convo_input, height=10, width=33, font=("Arial", 14, ""), wrap="word")
+        self.textbox_prompt.grid(row=0, column=0, rowspan=2)
+        self.button_update = tk.Button(self.convo_input, text="Update\nDatabase", font=("Arial", 14, "bold"), bg="#78938a", command=lambda: self.sendmessage(0))
+        self.button_update.grid(row=0, column=1, sticky=tk.NW)
+        self.button_prompt = tk.Button(self.convo_input, height=4, width=7, text="Send", font=("Arial", 14, "bold"), bg="#92ba92", command=lambda: self.sendmessage(1))
+        self.button_prompt.grid(row=1, column=1, sticky=tk.SE)
+
+        '''
+        # Set up API key
+        genai.configure(api_key="AIzaSyCy_5IaKck7-MrnJRYLjyV3n2FeCJ9FDGs")
+        # Initialize language model
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(f"Explain how AI works and give a shoutout to my name: {self.parent.user_name}")
+        print(response.text)
+        '''
+
+    # Display User/AI Chatbox Message++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def sendmessage(self, mode):
+        self.userprompt = self.textbox_prompt.get("1.0", tk.END).strip()
+        if self.userprompt != "":
+            self.fontsize = 14
+            self.fontstyle = "Arial"
+            self.chat = tk.Label(self.frame_Minay, text=self.userprompt, font=(self.fontstyle, self.fontsize, ""), fg="#f1ddbf", bg="black", wraplength=226, justify=tk.LEFT)
+            if mode == 0:# Minay response
+                # Retrieve Response
+                #
+                #
+                # Add Message Label Widget to Frame
+                self.chat.config(fg="#322d31", bg="white")
+                self.chat.grid(row=self.chatboxrow, column=0, sticky=tk.W)
+                tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=2, columnspan=3, sticky=tk.E)
+                self.sender = "AI Language Model 'Gemini'"
+            else: # User prompt
+                # Retrieve User Input
+                #
+                #
+                # Add Message Label Widget to Frame
+                tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=0, columnspan=2, sticky=tk.W)
+                self.chat.config(fg="#322d31", bg="#92ba92")
+                self.chat.grid(row=self.chatboxrow, column=2, sticky=tk.E)
+                tk.Label(self.frame_Minay, text="      ", bg="#525e75", width=10).grid(row=self.chatboxrow, column=3, sticky=tk.E)
+                self.sender = f"User '{self.parent.user_name}'"
+            # Update Chatbox Stuff
+            tk.Label(self.frame_Minay, text="      ", bg="#525e75").grid(row=self.chatboxrow+1, column=0, columnspan=3, sticky=tk.W)
+            self.textbox_prompt.delete("1.0", tk.END)
+            self.chatboxrow += 2
+            print(f"    Displayed chat message number {self.chatboxrow} from {self.sender}.")
 
     # Initiate Grocery Cart Feature
     def initiatecart(self):
@@ -227,5 +329,14 @@ class frame_header(tk.Frame):
         
     # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
     def set_mousewheel(self, widget, command):
+        widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
+        widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))
+
+    # Mouse Scroll Wheel event
+    def on_mousewheel_Minay(self, event):
+        self.canvas_Minay.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        
+    # Activate/Deactivate mousewheel scrolling when mouse cursor is over/not over the respective widget
+    def set_mousewheel_Minay(self, widget, command):
         widget.bind("<Enter>", lambda _: widget.bind_all('<MouseWheel>', command))
         widget.bind("<Leave>", lambda _: widget.unbind_all('<MouseWheel>'))

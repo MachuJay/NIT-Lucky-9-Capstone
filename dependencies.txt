@@ -7,14 +7,16 @@ pip install nuitka
 Python MySQL Connector (For database connections):
 pip install mysql-connector-python
 
-Transformers (For AI models):
-pip install transformers
+Google Gemini API:
+pip install google-generativeai
 -----------------------------------------------------
 -----------------------------------------------------
 optionals:
-
 Pandas (For uploading Excel file data into database):
 pip install pandas openpyxl
+
+Transformers (For AI models):
+pip install transformers
 -----------------------------------------------------
 -----------------------------------------------------
 -----------------------------------------------------
